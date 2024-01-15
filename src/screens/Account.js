@@ -55,6 +55,7 @@ const Account = (props) => {
 
   useEffect(() => {
     setLoading(true);
+    getAllKeys();
     setTimeout(() => {
       getUserData();
       setLoading(false);
@@ -71,6 +72,16 @@ const Account = (props) => {
     } catch (error) {
       console.log(error);
     }
+  };
+  const getAllKeys = async () => {
+    let keys = [];
+    try {
+      keys = await AsyncStorage.getAllKeys();
+    } catch (e) {
+      // read key error
+    }
+
+    console.log(keys);
   };
 
   return (

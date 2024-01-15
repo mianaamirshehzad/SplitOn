@@ -27,11 +27,11 @@ export default function CustomInput(props) {
 
   const handleDateConfirm = (date) => {
     hideDatePicker();
-    // props.onDateSelected(date);
+    props.onDateSelected(date);
     setDate(date.toDateString());
   };
 
-  console.log(date);
+  // console.log(date);
   return (
     <View style={styles.container}>
       {props.showTitle && (

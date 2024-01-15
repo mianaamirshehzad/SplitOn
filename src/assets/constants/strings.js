@@ -4,4 +4,5 @@ export const Strings = {
   SIGNUP: "Signup",
   FORGOT: "Forgot",
   ACCOUNT: "Account",
+  ADD_EXPENSE: "+ Add Expense",
 };

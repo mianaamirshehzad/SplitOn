@@ -13,8 +13,10 @@ import {
   doc,
   getDoc,
   getDocs,
+  getFirestore,
   getrFirestore,
   query,
+  setDoc,
 } from "firebase/firestore";
 import app from "../firebase";
 import GlobalStyles from "../styles/GlobalStyles";
@@ -25,51 +27,73 @@ import { getAuth } from "@firebase/auth";
 import { Images } from "../assets/constants/images";
 import Corner from "../components/Corner";
 import { Strings } from "../assets/constants/strings";
+import Spinner from "../components/Spinner";
 
 const Home = (props) => {
-  //   const auth = getAuth(app);
-  //   const db = getFirestore(app);
-  //   const [name, setName] = useState("");
+  const auth = getAuth(app);
+  const user = auth.currentUser;
+  const db = getFirestore(app);
+  const [amount, setAmount] = useState("");
+  const [description, setDescription] = useState("");
+  const [date, setDate] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  //   const getUserData = async () => {
-  //     try {
-  //       const q = query(collection(db, "users"));
+  const addExpenseToAccount = async (auth) => {
+    try {
+      setLoading(true);
+      if (!amount && !description && !date) {
+        alert("Fields missing");
+        return;
+      }
 
-  //       const querySnapshot = await getDocs(q);
-  //       querySnapshot.forEach((doc) => {
-  //         // doc.data() is never undefined for query doc snapshots
-  //         console.log(doc.id, " => ", doc.data().name);
-  //         setName(doc.data().name);
-  //       });
-  //     } catch (error) {
-  //       console.log(error);
-  //     }
-  //   };
-
-  //   useEffect(() => {
-  //     getUserData();
-  //   }, []);
+      await setDoc(doc(db, "expenses", user.email), {
+        amount: amount,
+        description: description,
+        date: date,
+      });
+      console.log("Expense added to account");
+    } catch (error) {
+      const message = error.message;
+      console.log(message);
+    } finally {
+      setAmount(null);
+      setDescription(null);
+      setDate(null);
+      setLoading(false);
+    }
+  };
 
   return (
     <View style={GlobalStyles.globalContainer}>
       {/* <Text>Welcome {name}</Text> */}
       <Corner />
+      <Spinner animating={loading} />
       <CustomInput
         showTitle={true}
         title="Amount"
         keyboardType="numeric"
         placeholder="Rs."
+        value={amount}
+        onChangeText={(text) => setAmount(text)}
       />
       <CustomInput
         showTitle={true}
         title="Description"
+        value={description}
         placeholder="Expense details..."
+        onChangeText={(text) => setDescription(text)}
       />
-      <CustomInput showTitle={true} title="Date" showDatePicker={true} />
-      <CustomView
+      <CustomInput
+        showTitle={true}
+        value={date}
+        title="Date"
+        showDatePicker={true}
+        onDateSelected={(date) => setDate(date.toDateString())}
+      />
+      <CustomButton name={Strings.ADD_EXPENSE} onPress={addExpenseToAccount} />
+      <CustomButton
         name={Strings.ACCOUNT}
-        source={Images.user}
-        // onPress={() => props.navigation.navigate(Strings.ACCOUNT)}
+        onPress={() => props.navigation.navigate(Strings.ACCOUNT)}
       />
     </View>
   );
