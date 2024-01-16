@@ -65,7 +65,7 @@ const Account = (props) => {
   const logoutUser = async () => {
     try {
       await signOut(auth);
-      await AsyncStorage.removeItem("accessToken");
+      await AsyncStorage.clear();
 
       console.log("User removed from AsyncStorage");
       props.navigation.navigate(Screens.LOGIN_SCREEN);

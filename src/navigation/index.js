@@ -10,6 +10,11 @@ const MyStack = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator>
+        {/* <Stack.Screen
+          name={Strings.BOTTOM_TABS}
+          component={Screens.BOTTOM_TABS}
+          options={{ headerShown: false }}
+        /> */}
         <Stack.Screen
           name={Strings.HOME}
           component={Screens.HOME_SCREEN}
@@ -35,6 +40,7 @@ const MyStack = () => {
           component={Screens.ACCOUNT_SCREEN}
           options={{ headerShown: false }}
         />
+
       </Stack.Navigator>
     </NavigationContainer>
   );

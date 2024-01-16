@@ -1,6 +1,5 @@
 import {StyleSheet} from 'react-native';
 import { BACKGROUND_COLOR, BUTTON_COLOR } from '../assets/Colours';
-import { CORNER } from './../assets/Colours';
 
 export default styles = StyleSheet.create({
   globalContainer: {

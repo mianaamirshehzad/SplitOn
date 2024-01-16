@@ -29,7 +29,7 @@ import Corner from "../components/Corner";
 import { Strings } from "../assets/constants/strings";
 import Spinner from "../components/Spinner";
 
-const Home = (props) => {
+const AddAmount = (props) => {
   const auth = getAuth(app);
   const user = auth.currentUser;
   const db = getFirestore(app);
@@ -91,10 +91,6 @@ const Home = (props) => {
         onDateSelected={(date) => setDate(date.toDateString())}
       />
       <CustomButton name={Strings.ADD_EXPENSE} onPress={addExpenseToAccount} />
-      <CustomButton
-        name={Strings.ACCOUNT}
-        onPress={() => props.navigation.navigate(Strings.ACCOUNT)}
-      />
     </View>
   );
 };
@@ -114,4 +110,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Home;
+export default AddAmount;
