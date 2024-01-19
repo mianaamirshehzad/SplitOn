@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import {
   Alert,
   Image,
+  Keyboard,
   ScrollView,
   StyleSheet,
   Text,
@@ -29,13 +30,14 @@ const Login = (props) => {
   const login = async () => {
     try {
       setLoading(true);
+      Keyboard.dismiss();
       signInWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
           const accessToken = userCredential.user.uid;
           console.log(`Users: ${JSON.stringify(user)}`);
           AsyncStorage.setItem("accessToken", accessToken);
           console.log("User saved locally");
-          props.navigation.navigate(Strings.HOME);
+          props.navigation.navigate(Strings.ADD_AMOUNT);
           setLoading(false);
         })
         .catch((error) => {
@@ -43,10 +45,12 @@ const Login = (props) => {
           const errorMessage = error.message;
           alert(errorMessage);
         });
-      setEmail(null);
-      setPassword(null);
     } catch (error) {
       console.log(error);
+    } finally {
+      setEmail(null);
+      setPassword(null);
+      setLoading(false);
     }
   };
 

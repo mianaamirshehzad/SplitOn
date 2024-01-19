@@ -1,6 +1,7 @@
 import {
   Alert,
   Image,
+  Keyboard,
   ScrollView,
   StyleSheet,
   Text,
@@ -8,16 +9,7 @@ import {
   View,
 } from "react-native";
 import React, { useState, useEffect } from "react";
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  getFirestore,
-  getrFirestore,
-  query,
-  setDoc,
-} from "firebase/firestore";
+import { addDoc, collection, getFirestore } from "firebase/firestore";
 import app from "../firebase";
 import GlobalStyles from "../styles/GlobalStyles";
 import CustomButton from "../components/CustomButton";
@@ -31,7 +23,7 @@ import Spinner from "../components/Spinner";
 
 const AddAmount = (props) => {
   const auth = getAuth(app);
-  const user = auth.currentUser;
+  // const userEmail = auth.currentUser.email;
   const db = getFirestore(app);
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
@@ -41,24 +33,25 @@ const AddAmount = (props) => {
   const addExpenseToAccount = async (auth) => {
     try {
       setLoading(true);
+      Keyboard.dismiss();
       if (!amount && !description && !date) {
         alert("Fields missing");
         return;
       }
-
-      await setDoc(doc(db, "expenses", user.email), {
+      const expenseRef = await addDoc(collection(db, "expenses"), {
         amount: amount,
         description: description,
         date: date,
+        creatorEmail: userEmail,
       });
-      console.log("Expense added to account");
+      console.log("New expense saved with Firestore ID: ", expenseRef.id);
     } catch (error) {
       const message = error.message;
       console.log(message);
     } finally {
       setAmount(null);
       setDescription(null);
-      setDate(null);
+      setDate("");
       setLoading(false);
     }
   };

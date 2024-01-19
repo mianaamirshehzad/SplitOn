@@ -6,7 +6,7 @@ import { Screens } from "../assets/constants/screens";
 
 const Stack = createNativeStackNavigator();
 
-const MyStack = () => {
+const AuthenticationStack = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator>
@@ -40,10 +40,9 @@ const MyStack = () => {
           component={Screens.ACCOUNT_SCREEN}
           options={{ headerShown: false }}
         />
-
       </Stack.Navigator>
     </NavigationContainer>
   );
 };
 
-export default MyStack;
+export default AuthenticationStack;
