@@ -1,12 +1,14 @@
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View } from "react-native";
-import BottomTabs from "./src/navigation/BottomTab";
+import BottomTab from "./src/navigation/BottomTab";
 import AuthenticationStack from "./src/navigation";
+import Signup from "./src/screens/Signup";
+import RootNavigator from "./src/navigation/RootNavigator";
 
 export default function App() {
   return (
     <View style={styles.container}>
-      <BottomTabs />
+      <RootNavigator />
     </View>
   );
 }

@@ -6,4 +6,5 @@ export const Strings = {
   ACCOUNT: "Account",
   ADD_AMOUNT: "AddAmount",
   ADD_EXPENSE: "+ Add Expense",
+  BOTTOM_TAB: "BottomTab",
 };

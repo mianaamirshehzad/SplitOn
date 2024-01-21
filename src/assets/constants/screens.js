@@ -4,7 +4,7 @@ import Account from "../../screens/Account";
 import Forgot from "../../screens/Forgot";
 import Home from "../../screens/AddAmount";
 import AddAmount from "../../screens/AddAmount";
-import BottomTabs from "../../navigation/BottomTab";
+import BottomTab from "../../navigation/BottomTab";
 import AuthenticationStack from "../../navigation";
 
 export const Screens = {
@@ -14,6 +14,6 @@ export const Screens = {
   FORGOT_SCREEN: Forgot,
   HOME_SCREEN: Home,
   ADD_AMOUNT_SCREEN: AddAmount,
-  BOTTOM_TABS: BottomTabs,
+  BOTTOM_TABS: BottomTab,
   MY_STACK: AuthenticationStack,
 };

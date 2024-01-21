@@ -18,7 +18,6 @@ import {
   query,
 } from "firebase/firestore";
 import { getAuth, signOut } from "firebase/auth";
-import { Screens } from "../assets/constants/screens";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import app from "../firebase";
 import GlobalStyles from "../styles/GlobalStyles";

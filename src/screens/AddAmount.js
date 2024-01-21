@@ -23,14 +23,16 @@ import Spinner from "../components/Spinner";
 
 const AddAmount = (props) => {
   const auth = getAuth(app);
-  // const userEmail = auth.currentUser.email;
+  const userEmail = auth.currentUser ? auth.currentUser.email : null;
   const db = getFirestore(app);
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const addExpenseToAccount = async (auth) => {
+  const addExpenseToAccount = async ({ auth }) => {
+    // props.navigation.navigate(Screens.ACCOUNT_SCREEN);
+
     try {
       setLoading(true);
       Keyboard.dismiss();

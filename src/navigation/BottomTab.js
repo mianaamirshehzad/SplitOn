@@ -5,28 +5,28 @@ import { NavigationContainer } from "@react-navigation/native";
 
 const Tab = createBottomTabNavigator();
 
-function BottomTabs() {
+function BottomTab() {
   return (
-    <NavigationContainer>
-      <Tab.Navigator>
-        <Tab.Screen
-          name={Strings.ADD_AMOUNT}
-          component={Screens.ADD_AMOUNT_SCREEN}
-          options={{ headerShown: false }}
-        />
-        <Tab.Screen
-          name={Strings.ACCOUNT}
-          component={Screens.ACCOUNT_SCREEN}
-          options={{ headerShown: false }}
-        />
-        <Tab.Screen
+    // <NavigationContainer>
+    <Tab.Navigator>
+      <Tab.Screen
+        name={Strings.ADD_AMOUNT}
+        component={Screens.ADD_AMOUNT_SCREEN}
+        options={{ headerShown: false }}
+      />
+      <Tab.Screen
+        name={Strings.ACCOUNT}
+        component={Screens.ACCOUNT_SCREEN}
+        options={{ headerShown: false }}
+      />
+      {/* <Tab.Screen
           name={Strings.LOGIN}
           component={Screens.LOGIN_SCREEN}
-          options={{ headerShown: false }}
-        />
-      </Tab.Navigator>
-    </NavigationContainer>
+          options={{ headerShown: false }} */}
+      {/* /> */}
+    </Tab.Navigator>
+    // </NavigationContainer>
   );
 }
 
-export default BottomTabs;
+export default BottomTab;
