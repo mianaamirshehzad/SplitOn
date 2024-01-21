@@ -8,7 +8,6 @@ const Stack = createNativeStackNavigator();
 
 const AuthenticationStack = () => {
   return (
-    // <NavigationContainer>
     <Stack.Navigator>
       <Stack.Screen
         name={Strings.SIGNUP}
@@ -26,7 +25,6 @@ const AuthenticationStack = () => {
         options={{ headerShown: false }}
       />
     </Stack.Navigator>
-    // </NavigationContainer>
   );
 };
 

@@ -1,11 +1,6 @@
 import {
-  Alert,
-  Image,
   Keyboard,
-  ScrollView,
   StyleSheet,
-  Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import React, { useState, useEffect } from "react";
@@ -14,9 +9,7 @@ import app from "../firebase";
 import GlobalStyles from "../styles/GlobalStyles";
 import CustomButton from "../components/CustomButton";
 import CustomInput from "../components/CustomInput";
-import CustomView from "../components/CustomView";
 import { getAuth } from "@firebase/auth";
-import { Images } from "../assets/constants/images";
 import Corner from "../components/Corner";
 import { Strings } from "../assets/constants/strings";
 import Spinner from "../components/Spinner";
@@ -31,7 +24,6 @@ const AddAmount = (props) => {
   const [loading, setLoading] = useState(false);
 
   const addExpenseToAccount = async ({ auth }) => {
-    // props.navigation.navigate(Screens.ACCOUNT_SCREEN);
 
     try {
       setLoading(true);
