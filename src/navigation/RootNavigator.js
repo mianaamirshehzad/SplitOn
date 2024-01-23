@@ -29,19 +29,14 @@ const RootNavigator = () => {
 
     // Cleanup function to unsubscribe when the component unmounts
     return () => unsubscribe();
-  }, []);
+  }, [isLoggedIn]);
 
   return (
-    <View>
+    <View style = {{flex: 1}} >
       <NavigationContainer>
         {isLoggedIn ? <AuthenticationStack /> : <BottomTab />}
       </NavigationContainer>
     </View>
-    // <>
-    //   <View>
-    //     <Text> hi</Text>
-    //   </View>
-    // </>
   );
 };
 

@@ -6,6 +6,7 @@ import Home from "../../screens/AddAmount";
 import AddAmount from "../../screens/AddAmount";
 import BottomTab from "../../navigation/BottomTab";
 import AuthenticationStack from "../../navigation";
+import RootNavigator from "../../navigation/RootNavigator";
 
 export const Screens = {
   LOGIN_SCREEN: Login,
@@ -15,5 +16,6 @@ export const Screens = {
   HOME_SCREEN: Home,
   ADD_AMOUNT_SCREEN: AddAmount,
   BOTTOM_TABS: BottomTab,
-  MY_STACK: AuthenticationStack,
+  AUTHENTICATION_STACK: AuthenticationStack,
+  ROOT_NAVIGATOR: RootNavigator,
 };

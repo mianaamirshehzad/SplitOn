@@ -24,6 +24,7 @@ import GlobalStyles from "../styles/GlobalStyles";
 import Spinner from "../components/Spinner";
 import CustomButton from "../components/CustomButton";
 import { BUTTON_COLOR } from "../assets/Colours";
+import { Screens } from "../assets/constants/screens";
 
 const Account = (props) => {
   const auth = getAuth(app);
@@ -68,10 +69,12 @@ const Account = (props) => {
       await signOut(auth);
       await AsyncStorage.clear();
 
-      console.log("User removed from AsyncStorage");
-      props.navigation.navigate(Screens.LOGIN_SCREEN);
+      console.log("User removed from AsyncStorage => Navigating to Login");
+      // props.onLogout();
+      props.navigation.navigate(Screens.ROOT_NAVIGATOR)
     } catch (error) {
       console.log(error);
+      console.log(error.message)
     }
   };
   const getAllKeys = async () => {
@@ -131,8 +134,9 @@ const Account = (props) => {
           style={GlobalStyles.corner}
         />
       </View>
-      {/* <View style={styles.container}> */}
+      <View style={styles.container}>
       <Text style={GlobalStyles.title}>Expense Table</Text>
+      </View>
       <Spinner animating={loading} />
       {/* <View style={styles.info}>
         <Text style={styles.text}>{name}</Text>
