@@ -34,7 +34,11 @@ const RootNavigator = () => {
   return (
     <View style = {{flex: 1}} >
       <NavigationContainer>
-        {isLoggedIn ? <AuthenticationStack /> : <BottomTab />}
+        {isLoggedIn ? 
+          <BottomTab />
+          :
+          <AuthenticationStack />  
+      }
       </NavigationContainer>
     </View>
   );
