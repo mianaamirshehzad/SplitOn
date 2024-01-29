@@ -24,11 +24,7 @@ const AuthenticationStack = () => {
         component={Screens.LOGIN_SCREEN}
         options={{ headerShown: false }}
       />
-      <Stack.Screen
-        name={Strings.ROOT_NAVIGATOR}
-        component={Screens.ROOT_NAVIGATOR}
-        options={{ headerShown: false }}
-      />
+    
     </Stack.Navigator>
   );
 };

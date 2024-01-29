@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import GlobalStyles from '../styles/GlobalStyles';
 import CustomButton from '../components/CustomButton';
 import CustomInput from '../components/CustomInput';
-// import { getAuth, sendPasswordResetEmail } from "firebase/auth";
+import { getAuth, sendPasswordResetEmail } from "firebase/auth";
 import app from '../firebase';
 
 
