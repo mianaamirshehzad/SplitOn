@@ -5,10 +5,8 @@ const ExpenseItem = ({ addedBy, description, amount, date }) => {
   return (
     <View style={styles.container}>
       <View style={styles.leftContainer}>
-        <Text style={styles.description}>{description}</Text>
         <Text style={styles.date}>{date}</Text>
-      </View>
-      <View style={styles.midContainer}>
+        <Text style={styles.description}>{description}</Text>
         <Text style={styles.addedBy}>{addedBy}</Text>
       </View>
       <View style={styles.rightContainer}>
@@ -41,37 +39,31 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     backgroundColor: "#fff",
-    padding: 16,
-    margin: 8,
+    padding: 10,
+    margin: 3,
     borderRadius: 8,
     elevation: 2,
   },
   leftContainer: {
     flexDirection: "column",
-    flex: 1,
-  },
-  midContainer: {
-    flex: 1,
-    alignItems: "center",
   },
   rightContainer: {
-    flex: 1,
     alignItems: "flex-end",
   },
-  addedBy: {
+  description: {
     fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 4,
-  },
-  description: {
-    fontSize: 20,
-    marginBottom: 4,
+    marginVertical: 4,
   },
   amount: {
     fontSize: 16,
     color: "green",
   },
   date: {
+    fontSize: 10,
+    color: "gray",
+  },
+  addedBy: {
     fontSize: 14,
     color: "gray",
   },

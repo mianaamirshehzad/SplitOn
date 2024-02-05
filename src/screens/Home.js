@@ -2,6 +2,7 @@ import {
   Alert,
   FlatList,
   Image,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -23,7 +24,7 @@ import app from "../firebase";
 import GlobalStyles from "../styles/GlobalStyles";
 import Spinner from "../components/Spinner";
 import CustomButton from "../components/CustomButton";
-import { BUTTON_COLOR } from "../assets/Colours";
+import { BUTTON_COLOR, Colors } from "../assets/Colours";
 import { Screens } from "../assets/constants/screens";
 import ExpensesList from "../components/ExpenseItem";
 
@@ -41,10 +42,17 @@ const Home = (props) => {
   const [date, setDate] = useState("");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
-  const [allExpenses, setAllExpenses] = useState();
+  const [allExpenses, setAllExpenses] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const getUserData = async () => {
+  const onRefresh = () => {
+    setRefreshing(true);
+    getUserExpenses();
+  };
+
+  const getUserExpenses = async () => {
+    setLoading(true);
     try {
       const q = query(collection(db, "expenses"));
 
@@ -55,66 +63,21 @@ const Home = (props) => {
         console.log(doc.id, " => ", doc.data());
         temp.push(doc.data());
       });
-      setAllExpenses(temp);
+      setAllExpenses(temp.reverse());
     } catch (error) {
       console.log(error);
+    } finally {
+      setRefreshing(false);
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    getUserData();
+    getUserExpenses();
   }, []);
-  console.log("all expenses ", allExpenses);
 
-  const logoutUser = async () => {
-    try {
-      await signOut(auth);
-      await AsyncStorage.clear();
-
-      console.log("User removed from AsyncStorage => Navigating to Login");
-      // props.onLogout();
-      props.navigation.navigate(Screens.ROOT_NAVIGATOR);
-    } catch (error) {
-      console.log(error);
-      console.log(error.message);
-    }
-  };
-
-  const data = [
-    {
-      id: "1",
-      email: "user1@example.com",
-      date: "2024-01-20",
-      amount: "$50",
-      description: "Purchase item A",
-    },
-    {
-      id: "2",
-      email: "user2@example.com",
-      date: "2024-01-21",
-      amount: "$30",
-      description: "Purchase item B",
-    },
-    {
-      id: "3",
-      email: "user3@example.com",
-      date: "2024-01-22",
-      amount: "$25",
-      description: "Purchase item C",
-    },
-    // Add more dummy data as needed
-  ];
-
-  const renderItem = ({ item, index }) => (
-    <View style={styles.row}>
-      <Text style={[styles.cell, { flex: 4 }]}>{item.amount}</Text>
-      <Text style={[styles.cell, { flex: 3 }]}>{item.date}</Text>
-      <Text style={[styles.cell, { flex: 2 }]}>{item.description}</Text>
-      <Text style={[styles.cell, { flex: 1 }]}>{item.addedBy}</Text>
-    </View>
-  );
   return (
-    <View style={GlobalStyles.globalContainer}>
+    <View style={styles.container}>
       <View style={styles.cornerTop}>
         <Image
           source={require("../assets/images/corner.png")}
@@ -127,21 +90,18 @@ const Home = (props) => {
           style={GlobalStyles.corner}
         />
       </View>
-      <View style={styles.container}>
-        <Text style={[GlobalStyles.title, { color: "white" }]}>
-          Expense Table
-        </Text>
+      {/* <View style={styles.container}> */}
+      <Text style={styles.title}>Expense Table</Text>
+      <Text style={styles.subtitle}>Monitor your financial landscape</Text>
+      <ScrollView
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         <Spinner animating={loading} />
-        {/* <View style={styles.container}> */}
-        <View style={styles.header}>
-          <Text style={styles.headerCell}>Email</Text>
-          <Text style={styles.headerCell}>Date</Text>
-          <Text style={styles.headerCell}>Description</Text>
-          <Text style={styles.headerCell}>Amount</Text>
-        </View>
         <ExpensesList expenses={allExpenses} />
         {/* </View> */}
-      </View>
+      </ScrollView>
     </View>
   );
 };
@@ -150,6 +110,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 5,
+    backgroundColor: Colors.BACKGROUND_COLOR,
+  },
+  title: {
+    color: Colors.BUTTON_COLOR,
+    fontSize: 24,
+    marginTop: 25,
+    fontWeight: "bold",
+    paddingHorizontal: 10,
+  },
+  subtitle: {
+    color: Colors.BLACK,
+    fontSize: 15,
+    paddingHorizontal: 10,
   },
   header: {
     flexDirection: "row",
