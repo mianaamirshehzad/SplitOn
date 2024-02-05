@@ -1,101 +1,197 @@
 import {
-    Keyboard,
-    StyleSheet,
-    View,
-  } from "react-native";
-  import React, { useState, useEffect } from "react";
-  import { addDoc, collection, getFirestore } from "firebase/firestore";
-  import app from "../firebase";
-  import GlobalStyles from "../styles/GlobalStyles";
-  import CustomButton from "../components/CustomButton";
-  import CustomInput from "../components/CustomInput";
-  import { getAuth } from "@firebase/auth";
-  import Corner from "../components/Corner";
-  import { Strings } from "../assets/constants/strings";
-  import Spinner from "../components/Spinner";
-  
-  const Home = (props) => {
-    const auth = getAuth(app);
-    const userEmail = auth.currentUser ? auth.currentUser.email : null;
-    const db = getFirestore(app);
-    const [amount, setAmount] = useState("");
-    const [description, setDescription] = useState("");
-    const [date, setDate] = useState("");
-    const [loading, setLoading] = useState(false);
-  
-    const addExpenseToAccount = async ({ auth }) => {
-  
-      try {
-        setLoading(true);
-        Keyboard.dismiss();
-        if (!amount && !description && !date) {
-          alert("Fields missing");
-          return;
-        }
-        const expenseRef = await addDoc(collection(db, "expenses"), {
-          amount: amount,
-          description: description,
-          date: date,
-          creatorEmail: userEmail,
-        });
-        console.log("New expense saved with Firestore ID: ", expenseRef.id);
-      } catch (error) {
-        const message = error.message;
-        console.log(message);
-      } finally {
-        setAmount(null);
-        setDescription(null);
-        setDate("");
-        setLoading(false);
-      }
-    };
-  
-    return (
-      <View style={GlobalStyles.globalContainer}>
-        {/* <Text>Welcome {name}</Text> */}
-        <Corner />
-        <Spinner animating={loading} />
-        <CustomInput
-          showTitle={true}
-          title="Amount"
-          keyboardType="numeric"
-          placeholder="Rs."
-          value={amount}
-          onChangeText={(text) => setAmount(text)}
-        />
-        <CustomInput
-          showTitle={true}
-          title="Description"
-          value={description}
-          placeholder="Expense details..."
-          onChangeText={(text) => setDescription(text)}
-        />
-        <CustomInput
-          showTitle={true}
-          value={date}
-          title="Date"
-          showDatePicker={true}
-          onDateSelected={(date) => setDate(date.toDateString())}
-        />
-        <CustomButton name={Strings.ADD_EXPENSE} onPress={addExpenseToAccount} />
-      </View>
-    );
+  Alert,
+  FlatList,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  getFirestore,
+  query,
+} from "firebase/firestore";
+import { getAuth, signOut } from "firebase/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import app from "../firebase";
+import GlobalStyles from "../styles/GlobalStyles";
+import Spinner from "../components/Spinner";
+import CustomButton from "../components/CustomButton";
+import { BUTTON_COLOR } from "../assets/Colours";
+import { Screens } from "../assets/constants/screens";
+import ExpensesList from "../components/ExpenseItem";
+
+const Home = (props) => {
+  const auth = getAuth(app);
+  const user = auth.currentUser;
+  if (user) {
+    console.log("User, ", user);
+    // setName(user.displayName);
+  }
+  const db = getFirestore(app);
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [date, setDate] = useState("");
+  const [amount, setAmount] = useState("");
+  const [description, setDescription] = useState("");
+  const [allExpenses, setAllExpenses] = useState();
+  const [loading, setLoading] = useState(false);
+
+  const getUserData = async () => {
+    try {
+      const q = query(collection(db, "expenses"));
+
+      const querySnapshot = await getDocs(q);
+      const temp = [];
+      querySnapshot.forEach((doc) => {
+        // doc.data() is never undefined for query doc snapshots
+        console.log(doc.id, " => ", doc.data());
+        temp.push(doc.data());
+      });
+      setAllExpenses(temp);
+    } catch (error) {
+      console.log(error);
+    }
   };
-  
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
+
+  useEffect(() => {
+    getUserData();
+  }, []);
+  console.log("all expenses ", allExpenses);
+
+  const logoutUser = async () => {
+    try {
+      await signOut(auth);
+      await AsyncStorage.clear();
+
+      console.log("User removed from AsyncStorage => Navigating to Login");
+      // props.onLogout();
+      props.navigation.navigate(Screens.ROOT_NAVIGATOR);
+    } catch (error) {
+      console.log(error);
+      console.log(error.message);
+    }
+  };
+
+  const data = [
+    {
+      id: "1",
+      email: "user1@example.com",
+      date: "2024-01-20",
+      amount: "$50",
+      description: "Purchase item A",
     },
-    boldText: {
-      fontWeight: "bold",
+    {
+      id: "2",
+      email: "user2@example.com",
+      date: "2024-01-21",
+      amount: "$30",
+      description: "Purchase item B",
     },
-    forgot: {
-      padding: 5,
-      alignItems: "flex-end",
-      marginLeft: "auto",
-      marginRight: 40,
+    {
+      id: "3",
+      email: "user3@example.com",
+      date: "2024-01-22",
+      amount: "$25",
+      description: "Purchase item C",
     },
-  });
-  
-  export default Home;
-  
+    // Add more dummy data as needed
+  ];
+
+  const renderItem = ({ item, index }) => (
+    <View style={styles.row}>
+      <Text style={[styles.cell, { flex: 4 }]}>{item.amount}</Text>
+      <Text style={[styles.cell, { flex: 3 }]}>{item.date}</Text>
+      <Text style={[styles.cell, { flex: 2 }]}>{item.description}</Text>
+      <Text style={[styles.cell, { flex: 1 }]}>{item.addedBy}</Text>
+    </View>
+  );
+  return (
+    <View style={GlobalStyles.globalContainer}>
+      <View style={styles.cornerTop}>
+        <Image
+          source={require("../assets/images/corner.png")}
+          style={GlobalStyles.corner}
+        />
+      </View>
+      <View style={styles.cornerbottom}>
+        <Image
+          source={require("../assets/images/corner.png")}
+          style={GlobalStyles.corner}
+        />
+      </View>
+      <View style={styles.container}>
+        <Text style={[GlobalStyles.title, { color: "white" }]}>
+          Expense Table
+        </Text>
+        <Spinner animating={loading} />
+        {/* <View style={styles.container}> */}
+        <View style={styles.header}>
+          <Text style={styles.headerCell}>Email</Text>
+          <Text style={styles.headerCell}>Date</Text>
+          <Text style={styles.headerCell}>Description</Text>
+          <Text style={styles.headerCell}>Amount</Text>
+        </View>
+        <ExpensesList expenses={allExpenses} />
+        {/* </View> */}
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: 5,
+  },
+  header: {
+    flexDirection: "row",
+    width: "98%",
+    borderBottomWidth: 1,
+    borderBottomColor: "#000",
+    paddingBottom: 8,
+    marginBottom: 8,
+    paddingHorizontal: 15,
+    marginHorizontal: 10,
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  headerCell: {
+    flex: 1,
+    fontWeight: "bold",
+  },
+  boldText: {
+    fontWeight: "bold",
+  },
+  cornerTop: {
+    left: -50,
+    top: -50,
+    position: "absolute",
+  },
+  cornerbottom: {
+    right: -50,
+    bottom: -50,
+    position: "absolute",
+  },
+  row: {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderBottomColor: BUTTON_COLOR,
+    width: "95%",
+    alignItems: "center",
+    paddingBottom: 8,
+    marginBottom: 8,
+  },
+  cell: {
+    flex: 1,
+  },
+});
+
+export default Home;

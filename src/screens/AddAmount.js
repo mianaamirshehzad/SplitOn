@@ -1,3 +1,4 @@
+
 import {
   Keyboard,
   StyleSheet,
@@ -17,25 +18,40 @@ import Spinner from "../components/Spinner";
 const AddAmount = (props) => {
   const auth = getAuth(app);
   const userEmail = auth.currentUser ? auth.currentUser.email : null;
+  const userName = auth.name ? auth.currentUser.displayName : null;
   const db = getFirestore(app);
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
   const [loading, setLoading] = useState(false);
 
+
+  console.log("userEmail", auth);
+  console.log("name ", userName);
+
+
   const addExpenseToAccount = async ({ auth }) => {
+
 
     try {
       setLoading(true);
       Keyboard.dismiss();
       if (!amount && !description && !date) {
-        alert("Fields missing");
+        alert("Oops! Fields missing");
         return;
       }
       const expenseRef = await addDoc(collection(db, "expenses"), {
         amount: amount,
         description: description,
         date: date,
+      });
+      console.log(
+        "New expense saved with Firestore document ID: ",
+        expenseRef.id
+      );
+    } catch (error) {
+      const message = error.message;
+      console.log(`Error ====> `, message);
         creatorEmail: userEmail,
       });
       console.log("New expense saved with Firestore ID: ", expenseRef.id);

@@ -14,11 +14,11 @@ import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import app from "../firebase";
 import { getFirestore, collection, addDoc } from "firebase/firestore";
 
+
 const Signup = (props) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [mobile, setMobile] = useState("");
-  const [cnic, setCnic] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPass, setConfirmPass] = useState("");
 
@@ -32,12 +32,10 @@ const Signup = (props) => {
           .then((userCredential) => {
             // Signed in
             const user = userCredential.user;
-
             const userDocRef = addDoc(collection(db, "users"), {
-              name,
-              email,
-              mobile,
-              cnic,
+              name: name,
+              email: email,
+              mobile: mobile
             });
 
             console.log(
@@ -60,7 +58,6 @@ const Signup = (props) => {
     } catch (error) {
       console.log(error);
     }
-    setCnic(null);
     setConfirmPass(null);
     setEmail(null);
     setMobile(null);
@@ -100,15 +97,9 @@ const Signup = (props) => {
       />
       <CustomInput
         onChangeText={(text) => setMobile(text)}
-        placeholder="Mobile No."
+        placeholder="Mobile No. (Optional)"
         keyboardType="numeric"
         value={mobile}
-      />
-      <CustomInput
-        onChangeText={(text) => setCnic(text)}
-        placeholder="CNIC"
-        keyboardType="numeric"
-        value={cnic}
       />
       <CustomInput
         onChangeText={(text) => setPassword(text)}

@@ -2,7 +2,6 @@ import Login from "../../screens/Login";
 import Signup from "../../screens/Signup";
 import Account from "../../screens/Account";
 import Forgot from "../../screens/Forgot";
-import Home from "../../screens/AddAmount";
 import AddAmount from "../../screens/AddAmount";
 import BottomTab from "../../navigation/BottomTab";
 import AuthenticationStack from "../../navigation";
