@@ -10,10 +10,10 @@ import React, { useState } from "react";
 import GlobalStyles from "../styles/GlobalStyles";
 import CustomButton from "../components/CustomButton";
 import CustomInput from "../components/CustomInput";
-// import auth, { firebase } from '@react-native-firebase/auth';
-// import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import app from "../firebase";
-// import { getFirestore, collection, addDoc } from 'firebase/firestore';
+import { getFirestore, collection, addDoc } from "firebase/firestore";
+
 
 const Signup = (props) => {
   const [name, setName] = useState("");
@@ -35,7 +35,7 @@ const Signup = (props) => {
             const userDocRef = addDoc(collection(db, "users"), {
               name: name,
               email: email,
-              mobile: mobile,
+              mobile: mobile
             });
 
             console.log(

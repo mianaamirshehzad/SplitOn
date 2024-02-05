@@ -1,4 +1,9 @@
-import { Keyboard, StyleSheet, View } from "react-native";
+
+import {
+  Keyboard,
+  StyleSheet,
+  View,
+} from "react-native";
 import React, { useState, useEffect } from "react";
 import { addDoc, collection, getFirestore } from "firebase/firestore";
 import app from "../firebase";
@@ -20,10 +25,14 @@ const AddAmount = (props) => {
   const [date, setDate] = useState("");
   const [loading, setLoading] = useState(false);
 
+
   console.log("userEmail", auth);
   console.log("name ", userName);
 
-  const addExpenseToAccount = async () => {
+
+  const addExpenseToAccount = async ({ auth }) => {
+
+
     try {
       setLoading(true);
       Keyboard.dismiss();
@@ -35,7 +44,6 @@ const AddAmount = (props) => {
         amount: amount,
         description: description,
         date: date,
-        addedBy: userEmail,
       });
       console.log(
         "New expense saved with Firestore document ID: ",
@@ -44,6 +52,12 @@ const AddAmount = (props) => {
     } catch (error) {
       const message = error.message;
       console.log(`Error ====> `, message);
+        creatorEmail: userEmail,
+      });
+      console.log("New expense saved with Firestore ID: ", expenseRef.id);
+    } catch (error) {
+      const message = error.message;
+      console.log(message);
     } finally {
       setAmount(null);
       setDescription(null);

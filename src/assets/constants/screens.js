@@ -18,4 +18,5 @@ export const Screens = {
   BOTTOM_TABS: BottomTab,
   AUTHENTICATION_STACK: AuthenticationStack,
   ROOT_NAVIGATOR: RootNavigator,
+  HOME_SCREEN: Home,
 };

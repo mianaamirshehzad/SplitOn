@@ -1,11 +1,12 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
-import MyStack from './src/navigation';
+import { StatusBar } from "expo-status-bar";
+import { StyleSheet, Text, View } from "react-native";
+import Signup from "./src/screens/Signup";
+import RootNavigator from "./src/navigation/RootNavigator";
 
 export default function App() {
   return (
     <View style={styles.container}>
-      <MyStack />
+      <RootNavigator />
     </View>
   );
 }
@@ -13,8 +14,5 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'pink',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });
