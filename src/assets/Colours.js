@@ -5,4 +5,5 @@ export const Colors = {
   VIEW: "#A4BF5B",
   WHITE: "white",
   BLACK: "black",
+  BRIGHT: "#b9ec2c",
 };

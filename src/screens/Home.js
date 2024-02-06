@@ -6,6 +6,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -45,7 +46,22 @@ const Home = (props) => {
   const [allExpenses, setAllExpenses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredExpenses, setFilteredExpenses] = useState("");
 
+  const handleSearch = (text) => {
+    setSearchQuery(text);
+
+    // For simplicity, you can filter expenses based on the searchQuery
+    const filteredExpenses = allExpenses.filter(
+      (expense) =>
+        (expense.description &&
+          expense.description.toLowerCase().includes(text.toLowerCase())) ||
+        (expense.amount &&
+          String(expense.amount).toLowerCase().includes(text.toLowerCase()))
+    );
+    setAllExpenses(filteredExpenses);
+  };
   const onRefresh = () => {
     setRefreshing(true);
     getUserExpenses();
@@ -75,6 +91,9 @@ const Home = (props) => {
   useEffect(() => {
     getUserExpenses();
   }, []);
+  useEffect(() => {
+    handleSearch();
+  }, [searchQuery]);
 
   return (
     <View style={styles.container}>
@@ -93,13 +112,28 @@ const Home = (props) => {
       {/* <View style={styles.container}> */}
       <Text style={styles.title}>Expense Table</Text>
       <Text style={styles.subtitle}>Monitor your financial landscape</Text>
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search..."
+          value={searchQuery}
+          onChangeText={handleSearch}
+          // onChangeText={(text) => setSearchQuery(text)}
+          // onSubmitEditing={handleSearch}
+        />
+        {/* <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
+          <Text style={styles.searchButtonText}>Search</Text>
+        </TouchableOpacity> */}
+      </View>
       <ScrollView
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
         <Spinner animating={loading} />
-        <ExpensesList expenses={allExpenses} />
+        <ExpensesList
+          expenses={filteredExpenses ? filteredExpenses : allExpenses}
+        />
         {/* </View> */}
       </ScrollView>
     </View>
@@ -123,6 +157,28 @@ const styles = StyleSheet.create({
     color: Colors.BLACK,
     fontSize: 15,
     paddingHorizontal: 10,
+  },
+  searchContainer: {
+    flexDirection: "row",
+    margin: 10,
+  },
+  searchInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 20,
+    padding: 8,
+    marginRight: 5,
+    borderColor: Colors.BUTTON_COLOR,
+  },
+  searchButton: {
+    padding: 8,
+    backgroundColor: BUTTON_COLOR,
+    borderRadius: 5,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  searchButtonText: {
+    color: Colors.BLACK,
   },
   header: {
     flexDirection: "row",
