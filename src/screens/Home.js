@@ -1,41 +1,33 @@
 import {
-  Alert,
-  FlatList,
   Image,
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from "react-native";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   collection,
-  doc,
-  getDoc,
   getDocs,
   getFirestore,
+  orderBy,
   query,
 } from "firebase/firestore";
-import { getAuth, signOut } from "firebase/auth";
+import { getAuth } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native";
 import app from "../firebase";
 import GlobalStyles from "../styles/GlobalStyles";
 import Spinner from "../components/Spinner";
-import CustomButton from "../components/CustomButton";
 import { BUTTON_COLOR, Colors } from "../assets/Colours";
-import { Screens } from "../assets/constants/screens";
 import ExpensesList from "../components/ExpenseItem";
 
 const Home = (props) => {
   const auth = getAuth(app);
   const user = auth.currentUser;
-  if (user) {
-    console.log("User, ", user);
-    // setName(user.displayName);
-  }
+  // const {  } = user;
   const db = getFirestore(app);
 
   const [name, setName] = useState("");
@@ -47,30 +39,36 @@ const Home = (props) => {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filteredExpenses, setFilteredExpenses] = useState("");
+  const [filteredExpenses, setFilteredExpenses] = useState([]);
 
   const handleSearch = (text) => {
     setSearchQuery(text);
 
-    // For simplicity, you can filter expenses based on the searchQuery
-    const filteredExpenses = allExpenses.filter(
+    if (!text || text === " ") {
+      setFilteredExpenses(allExpenses);
+    }
+
+    const filteredData = allExpenses.filter(
       (expense) =>
         (expense.description &&
           expense.description.toLowerCase().includes(text.toLowerCase())) ||
         (expense.amount &&
           String(expense.amount).toLowerCase().includes(text.toLowerCase()))
     );
-    setAllExpenses(filteredExpenses);
+
+    setFilteredExpenses(filteredData);
   };
+
   const onRefresh = () => {
     setRefreshing(true);
     getUserExpenses();
   };
 
   const getUserExpenses = async () => {
-    setLoading(true);
+    // setLoading(true);
+    setRefreshing(true);
     try {
-      const q = query(collection(db, "expenses"));
+      const q = query(collection(db, "expenses"), orderBy("date", "desc"));
 
       const querySnapshot = await getDocs(q);
       const temp = [];
@@ -79,7 +77,7 @@ const Home = (props) => {
         console.log(doc.id, " => ", doc.data());
         temp.push(doc.data());
       });
-      setAllExpenses(temp.reverse());
+      setAllExpenses(temp);
     } catch (error) {
       console.log(error);
     } finally {
@@ -88,12 +86,35 @@ const Home = (props) => {
     }
   };
 
+  useFocusEffect(
+    useCallback(() => {
+      getUserExpenses();
+    }, [])
+  );
   useEffect(() => {
     getUserExpenses();
   }, []);
-  useEffect(() => {
-    handleSearch();
-  }, [searchQuery]);
+
+  const data = [
+    {
+      description: "milk",
+      amount: 1000,
+      addedBy: "mail@mail.com",
+      date: "Tue, 21 May",
+    },
+    {
+      description: "milk",
+      amount: 1000,
+      addedBy: "mail@mail.com",
+      date: "Tue, 21 May",
+    },
+    {
+      description: "milk",
+      amount: 1000,
+      addedBy: "mail@mail.com",
+      date: "Tue, 21 May",
+    },
+  ];
 
   return (
     <View style={styles.container}>
@@ -115,15 +136,10 @@ const Home = (props) => {
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Search..."
+          placeholder="Type to search..."
           value={searchQuery}
           onChangeText={handleSearch}
-          // onChangeText={(text) => setSearchQuery(text)}
-          // onSubmitEditing={handleSearch}
         />
-        {/* <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
-          <Text style={styles.searchButtonText}>Search</Text>
-        </TouchableOpacity> */}
       </View>
       <ScrollView
         refreshControl={
@@ -132,9 +148,10 @@ const Home = (props) => {
       >
         <Spinner animating={loading} />
         <ExpensesList
-          expenses={filteredExpenses ? filteredExpenses : allExpenses}
+          expenses={
+            filteredExpenses.length > 0 ? filteredExpenses : allExpenses
+          }
         />
-        {/* </View> */}
       </ScrollView>
     </View>
   );

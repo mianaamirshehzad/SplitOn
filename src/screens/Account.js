@@ -71,10 +71,10 @@ const Account = (props) => {
 
       console.log("User removed from AsyncStorage => Navigating to Login");
       // props.onLogout();
-      props.navigation.navigate(Screens.ROOT_NAVIGATOR)
+      props.navigation.navigate(Screens.ROOT_NAVIGATOR);
     } catch (error) {
       console.log(error);
-      console.log(error.message)
+      console.log(error.message);
     }
   };
   const getAllKeys = async () => {
@@ -135,15 +135,9 @@ const Account = (props) => {
         />
       </View>
       <View style={styles.container}>
-      <Text style={GlobalStyles.title}>Expense Table</Text>
+        <Text style={GlobalStyles.title}>Expense Table</Text>
       </View>
       <Spinner animating={loading} />
-      {/* <View style={styles.info}>
-        <Text style={styles.text}>{name}</Text>
-        <Text style={styles.text}>{email}</Text>
-        <Text style={styles.text}>{cnic}</Text>
-        <Text style={styles.text}>{mobile}</Text>
-      </View> */}
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.headerCell}>Email</Text>
@@ -151,11 +145,11 @@ const Account = (props) => {
           <Text style={styles.headerCell}>Description</Text>
           <Text style={styles.headerCell}>Amount</Text>
         </View>
-        <FlatList
+        {/* <FlatList
           data={data}
           renderItem={renderItem}
           keyExtractor={(item) => item.id}
-        />
+        /> */}
       </View>
 
       <CustomButton name="Logout" onPress={() => logoutUser()} />

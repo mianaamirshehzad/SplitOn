@@ -32,10 +32,10 @@ const AddAmount = (props) => {
         return;
       }
       const expenseRef = await addDoc(collection(db, "expenses"), {
-        amount: amount,
-        description: description,
+        amount: amount.trim(),
+        description: description.trim(),
         date: date,
-        addedBy: userEmail,
+        addedBy: userEmail.trim(),
       });
       console.log(
         "New expense saved with Firestore document ID: ",

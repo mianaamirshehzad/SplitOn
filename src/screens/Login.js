@@ -34,7 +34,7 @@ const Login = (props) => {
       signInWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
           const accessToken = userCredential.user.uid;
-          console.log(`Users: ${JSON.stringify(user)}`);
+          console.log(`User: ${JSON.stringify(user)}`);
           AsyncStorage.setItem("accessToken", accessToken);
           console.log("User saved locally");
           props.navigation.navigate(Strings.ADD_AMOUNT);
