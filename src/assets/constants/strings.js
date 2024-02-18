@@ -1,4 +1,5 @@
 export const Strings = {
+  ADD: "Add",
   HOME: "Home",
   LOGIN: "Login",
   SIGNUP: "Signup",

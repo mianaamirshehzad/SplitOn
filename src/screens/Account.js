@@ -2,6 +2,7 @@ import {
   Alert,
   FlatList,
   Image,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -15,7 +16,9 @@ import {
   getDoc,
   getDocs,
   getFirestore,
+  orderBy,
   query,
+  where,
 } from "firebase/firestore";
 import { getAuth, signOut } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -23,43 +26,55 @@ import app from "../firebase";
 import GlobalStyles from "../styles/GlobalStyles";
 import Spinner from "../components/Spinner";
 import CustomButton from "../components/CustomButton";
-import { BUTTON_COLOR } from "../assets/Colours";
+import { BUTTON_COLOR, Colors } from "../assets/Colours";
 import { Screens } from "../assets/constants/screens";
+import ExpensesList from "../components/ExpenseItem";
 
 const Account = (props) => {
   const auth = getAuth(app);
   const db = getFirestore(app);
-
+  const userEmail = auth.currentUser ? auth.currentUser.email : null;
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [date, setDate] = useState("");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [allExpenses, setAllExpenses] = useState([]);
 
-  const getUserData = async () => {
+
+  const getMyExpenses = async () => {
+    // setLoading(true);
+    setRefreshing(true);
     try {
-      const q = query(collection(db, "expenses"));
+      const q = query(
+        collection(db, "expenses"),
+        orderBy("date", "desc"),
+        where("addedBy", "==", userEmail) 
+      );
 
       const querySnapshot = await getDocs(q);
+      const temp = [];
       querySnapshot.forEach((doc) => {
         // doc.data() is never undefined for query doc snapshots
         console.log(doc.id, " => ", doc.data());
-        setEmail(doc.data().creatorEmail);
-        setDate(doc.data().date);
-        setAmount(doc.data().amount);
-        setDescription(doc.data().description);
+        temp.push(doc.data());
       });
+      setAllExpenses(temp);
     } catch (error) {
       console.log(error);
+    } finally {
+      setRefreshing(false);
+      setLoading(false);
     }
   };
 
+
   useEffect(() => {
     setLoading(true);
-    getAllKeys();
     setTimeout(() => {
-      getUserData();
+      getMyExpenses();
       setLoading(false);
     }, 2000);
   }, []);
@@ -88,40 +103,13 @@ const Account = (props) => {
     console.log(keys);
   };
 
-  const data = [
-    {
-      id: "1",
-      email: "user1@example.com",
-      date: "2024-01-20",
-      amount: "$50",
-      description: "Purchase item A",
-    },
-    {
-      id: "2",
-      email: "user2@example.com",
-      date: "2024-01-21",
-      amount: "$30",
-      description: "Purchase item B",
-    },
-    {
-      id: "3",
-      email: "user3@example.com",
-      date: "2024-01-22",
-      amount: "$25",
-      description: "Purchase item C",
-    },
-    // Add more dummy data as needed
-  ];
-  const renderItem = ({}) => (
-    <View style={styles.row}>
-      <Text style={[styles.cell, { flex: 4 }]}>{email}</Text>
-      <Text style={[styles.cell, { flex: 3 }]}>{date}</Text>
-      <Text style={[styles.cell, { flex: 2 }]}>{description}</Text>
-      <Text style={[styles.cell, { flex: 1 }]}>{amount}</Text>
-    </View>
-  );
+  const onRefresh = () => {
+    setRefreshing(true);
+    getMyExpenses();
+  };
+
   return (
-    <View style={[GlobalStyles.globalContainer]}>
+    <View style={styles.container}>
       <View style={styles.cornerTop}>
         <Image
           source={require("../assets/images/corner.png")}
@@ -134,22 +122,23 @@ const Account = (props) => {
           style={GlobalStyles.corner}
         />
       </View>
-      <View style={styles.container}>
-        <Text style={GlobalStyles.title}>Expense Table</Text>
+      <View style={styles.titleContainer}>
+        <Text style={GlobalStyles.title}>My Expenses</Text>
       </View>
       <Spinner animating={loading} />
       <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerCell}>Email</Text>
-          <Text style={styles.headerCell}>Date</Text>
-          <Text style={styles.headerCell}>Description</Text>
-          <Text style={styles.headerCell}>Amount</Text>
-        </View>
-        {/* <FlatList
-          data={data}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.id}
-        /> */}
+        <ScrollView
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        >
+          <Spinner animating={loading} />
+          <ExpensesList
+            expenses={
+              allExpenses
+            }
+          />
+        </ScrollView>
       </View>
 
       <CustomButton name="Logout" onPress={() => logoutUser()} />
@@ -160,7 +149,11 @@ const Account = (props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    paddingHorizontal: 5,
+    backgroundColor: Colors.BACKGROUND_COLOR,
+  },
+  titleContainer: {
+    paddingTop: 25,
   },
   header: {
     flexDirection: "row",

@@ -11,7 +11,6 @@ function BottomTab() {
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarShowLabel: false,
         tabBarHideOnKeyboard: true,
       }}
     >
@@ -30,7 +29,7 @@ function BottomTab() {
         }}
       />
       <Tab.Screen
-        name={Strings.ADD_AMOUNT}
+        name={Strings.ADD}
         component={Screens.ADD_AMOUNT_SCREEN}
         options={{
           headerShown: false,

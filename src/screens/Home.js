@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from "react-native";
 import React, { useState, useEffect, useCallback } from "react";
@@ -95,26 +96,7 @@ const Home = (props) => {
     getUserExpenses();
   }, []);
 
-  const data = [
-    {
-      description: "milk",
-      amount: 1000,
-      addedBy: "mail@mail.com",
-      date: "Tue, 21 May",
-    },
-    {
-      description: "milk",
-      amount: 1000,
-      addedBy: "mail@mail.com",
-      date: "Tue, 21 May",
-    },
-    {
-      description: "milk",
-      amount: 1000,
-      addedBy: "mail@mail.com",
-      date: "Tue, 21 May",
-    },
-  ];
+
 
   return (
     <View style={styles.container}>
@@ -130,17 +112,27 @@ const Home = (props) => {
           style={GlobalStyles.corner}
         />
       </View>
-      {/* <View style={styles.container}> */}
-      <Text style={styles.title}>Expense Table</Text>
-      <Text style={styles.subtitle}>Monitor your financial landscape</Text>
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Type to search..."
-          value={searchQuery}
-          onChangeText={handleSearch}
-        />
+      <View style={styles.titleContainer}>
+        <Text style={styles.title}>Expense Table</Text>
+        <Text style={styles.subtitle}>Monitor your financial landscape</Text>
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Type to search..."
+            value={searchQuery}
+            onChangeText={handleSearch}
+          />
+          {
+            searchQuery && (
+              <TouchableOpacity style={{ left: -25 }} onPress={() => setSearchQuery('')} >
+                <Text>
+                  X
+                </Text>
+              </TouchableOpacity>
+            )}
+        </View>
       </View>
+
       <ScrollView
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -163,6 +155,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     backgroundColor: Colors.BACKGROUND_COLOR,
   },
+  titleContainer: {
+    paddingTop: 15,
+  },
   title: {
     color: Colors.BUTTON_COLOR,
     fontSize: 24,
@@ -177,12 +172,15 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     flexDirection: "row",
-    margin: 10,
+    marginHorizontal: 10,
+    paddingVertical: 5,
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   searchInput: {
     flex: 1,
     borderWidth: 1,
-    borderRadius: 20,
+    borderRadius: 15,
     padding: 8,
     marginRight: 5,
     borderColor: Colors.BUTTON_COLOR,
