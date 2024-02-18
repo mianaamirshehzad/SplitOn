@@ -9,6 +9,7 @@ import { getAuth } from "@firebase/auth";
 import Corner from "../components/Corner";
 import { Strings } from "../assets/constants/strings";
 import Spinner from "../components/Spinner";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const AddAmount = (props) => {
   const auth = getAuth(app);
@@ -20,8 +21,8 @@ const AddAmount = (props) => {
   const [date, setDate] = useState("");
   const [loading, setLoading] = useState(false);
 
-  console.log("userEmail", auth);
-  console.log("name ", userName);
+  // console.log("userEmail", auth);
+  // console.log("name ", userName);
 
   const addExpenseToAccount = async () => {
     try {
@@ -41,6 +42,22 @@ const AddAmount = (props) => {
         "New expense saved with Firestore document ID: ",
         expenseRef.id
       );
+
+      // Save the document locally using AsyncStorage upon successful upload
+      let localExpenses = [];
+      localExpenses.push({
+        amount: amount.trim(),
+        description: description.trim(),
+        date: date,
+        addedBy: userEmail.trim(),
+      });
+      await AsyncStorage.setItem(
+        "localExpenses",
+        JSON.stringify(localExpenses)
+      );
+
+      const savedData = await AsyncStorage.getItem("localExpenses")
+      console.log('Data saved after uploading: ', savedData )
     } catch (error) {
       const message = error.message;
       console.log(message);
@@ -100,3 +117,4 @@ const styles = StyleSheet.create({
 });
 
 export default AddAmount;
+
