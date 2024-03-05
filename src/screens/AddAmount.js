@@ -73,6 +73,26 @@ const AddAmount = (props) => {
     <View style={GlobalStyles.globalContainer}>
       {/* <Text>Welcome {name}</Text> */}
       <Corner />
+      <View style={styles.titleContainer}>
+        <Text style={styles.title}>What you spent?</Text>
+        <Text style={styles.subtitle}>Document your expense</Text>
+        {/* <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Type to search..."
+            value={searchQuery}
+            onChangeText={handleSearch}
+          />
+          {
+            searchQuery && (
+              <TouchableOpacity style={{ left: -25 }} onPress={() => setSearchQuery('')} >
+                <Text>
+                  X
+                </Text>
+              </TouchableOpacity>
+            )}
+        </View> */}
+      </View>
       <Spinner animating={loading} />
       <CustomInput
         showTitle={true}
@@ -113,6 +133,21 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
     marginLeft: "auto",
     marginRight: 40,
+  },
+  titleContainer: {
+    paddingTop: 15,
+  },
+  title: {
+    color: Colors.BUTTON_COLOR,
+    fontSize: 24,
+    marginTop: 25,
+    fontWeight: "bold",
+    paddingHorizontal: 10,
+  },
+  subtitle: {
+    color: Colors.BLACK,
+    fontSize: 15,
+    paddingHorizontal: 10,
   },
 });
 
