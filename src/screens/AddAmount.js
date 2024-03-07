@@ -1,4 +1,4 @@
-import { Keyboard, StyleSheet, View } from "react-native";
+import { Keyboard, StyleSheet, View , Text} from "react-native";
 import React, { useState, useEffect } from "react";
 import { addDoc, collection, getFirestore } from "firebase/firestore";
 import app from "../firebase";
@@ -10,6 +10,7 @@ import Corner from "../components/Corner";
 import { Strings } from "../assets/constants/strings";
 import Spinner from "../components/Spinner";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Colors } from "../assets/Colours";
 
 const AddAmount = (props) => {
   const auth = getAuth(app);
@@ -39,6 +40,8 @@ const AddAmount = (props) => {
         addedBy: userEmail.trim(),
       });
       console.log(
+        "New expense saved with Firestore document ID: ",
+        "New expense saved with Firestore document ID: ",
         "New expense saved with Firestore document ID: ",
         expenseRef.id
       );
