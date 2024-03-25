@@ -1,4 +1,4 @@
-import { Keyboard, StyleSheet, View , Text} from "react-native";
+import { Keyboard, StyleSheet, View, Text } from "react-native";
 import React, { useState, useEffect } from "react";
 import { addDoc, collection, getFirestore } from "firebase/firestore";
 import app from "../firebase";
@@ -40,9 +40,7 @@ const AddAmount = (props) => {
         addedBy: userEmail.trim(),
       });
       console.log(
-        "New expense saved with Firestore document ID: ",
-        "New expense saved with Firestore document ID: ",
-        "New expense saved with Firestore document ID: ",
+        "Expense saved with ID: ",
         expenseRef.id
       );
 
@@ -60,7 +58,7 @@ const AddAmount = (props) => {
       );
 
       const savedData = await AsyncStorage.getItem("localExpenses")
-      console.log('Data saved after uploading: ', savedData )
+      console.log('Data saved after uploading: ', savedData)
     } catch (error) {
       const message = error.message;
       console.log(message);

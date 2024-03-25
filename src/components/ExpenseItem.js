@@ -1,9 +1,11 @@
 import React from "react";
-import { FlatList, View, Text, StyleSheet } from "react-native";
+import { FlatList, View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
-const ExpenseItem = ({ addedBy, description, amount, date }) => {
+const ExpenseItem = ({ addedBy, description, amount, date, onDeletePress }) => {
   return (
-    <View style={styles.container}>
+    <TouchableOpacity style={styles.container}
+    onLongPress={(item) => onDeletePress(item)}
+      >
       <View style={styles.leftContainer}>
         <Text style={styles.date}>{date}</Text>
         <Text style={styles.description}>{description}</Text>
@@ -12,21 +14,24 @@ const ExpenseItem = ({ addedBy, description, amount, date }) => {
       <View style={styles.rightContainer}>
         <Text style={styles.amount}>{amount}</Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
-const ExpensesList = ({ expenses }) => {
+const ExpensesList = ({ expenses,onEditPress, onDeletePress }) => {
   return (
     <FlatList
       data={expenses}
       keyExtractor={(item, index) => index.toString()}
       renderItem={({ item }) => (
         <ExpenseItem
+          id = {item.id}
           addedBy={item.addedBy}
           description={item.description}
           amount={item.amount}
           date={item.date}
+          onEditPress={onEditPress}
+          onDeletePress={onDeletePress}
         />
       )}
     />

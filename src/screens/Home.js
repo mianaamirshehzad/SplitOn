@@ -7,6 +7,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Alert
 } from "react-native";
 import React, { useState, useEffect, useCallback } from "react";
 import {
@@ -24,6 +25,9 @@ import GlobalStyles from "../styles/GlobalStyles";
 import Spinner from "../components/Spinner";
 import { BUTTON_COLOR, Colors } from "../assets/Colours";
 import ExpensesList from "../components/ExpenseItem";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { doc, deleteDoc } from "firebase/firestore";
+
 
 const Home = (props) => {
   const auth = getAuth(app);
@@ -41,14 +45,13 @@ const Home = (props) => {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredExpenses, setFilteredExpenses] = useState([]);
+  const [selection, setSelection] = useState(false);
 
   const handleSearch = (text) => {
     setSearchQuery(text);
-
     if (!text || text === " ") {
       setFilteredExpenses(allExpenses);
     }
-
     const filteredData = allExpenses.filter(
       (expense) =>
         (expense.description &&
@@ -58,6 +61,10 @@ const Home = (props) => {
     );
 
     setFilteredExpenses(filteredData);
+  };
+
+  const handleExpenseEdit = () => {
+    console.log("+++++++++++++++++++")
   };
 
   const onRefresh = () => {
@@ -87,6 +94,45 @@ const Home = (props) => {
     }
   };
 
+  const expenseDeletor = async (item) => {
+    try {
+    setSelection(!selection);
+      const expenseRef = doc(db, 'expenses', item);
+      await deleteDoc(doc(expenseRef)); 
+      // Refresh expenses after deletion
+      setSelection(!selection);
+      getUserExpenses();
+
+    } catch (error) {
+      console.error('Error deleting expense: ', error);
+    }
+  };
+
+  const showAlert = () =>
+  Alert.alert(
+    'Do you want to delete expense item?',
+    'Caution: Delete cannot be undone.',
+    [
+      {
+        text: 'No',
+        onPress: () => console.log('Cancel Pressed'),
+        style: 'cancel',
+      },
+      {
+        text: 'Yes',
+        onPress: (item) => expenseDeletor(item),
+        style: 'cancel',
+      },
+    ],
+    {
+      cancelable: true,
+      onDismiss: () =>
+        console.log(
+          'This alert was dismissed by tapping outside of the alert dialog.',
+        ),
+    },
+  );
+
   useFocusEffect(
     useCallback(() => {
       getUserExpenses();
@@ -112,26 +158,55 @@ const Home = (props) => {
           style={GlobalStyles.corner}
         />
       </View>
-      <View style={styles.titleContainer}>
-        <Text style={styles.title}>Expense Table</Text>
-        <Text style={styles.subtitle}>Monitor your financial landscape</Text>
-        <View style={styles.searchContainer}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Type to search..."
-            value={searchQuery}
-            onChangeText={handleSearch}
-          />
-          {
-            searchQuery && (
-              <TouchableOpacity style={{ left: -25 }} onPress={() => setSearchQuery('')} >
-                <Text>
-                  X
-                </Text>
+      {selection ? (
+        <View style={styles.selectionContainer} >
+          <View style={styles.actionContainer} >
+            <Text style={styles.actionText}>
+              Action required:
+            </Text>
+            {/* <View style={styles.actionButtons} > */}
+              <TouchableOpacity>
+                <MaterialCommunityIcons
+                  name="pencil"
+                  size={25}
+                  color={Colors.WHITE}
+
+                />
               </TouchableOpacity>
-            )}
+              <TouchableOpacity>
+                <MaterialCommunityIcons
+                  name="delete"
+                  size={25}
+                  color={Colors.WHITE}
+                  onPress={showAlert}
+                />
+              </TouchableOpacity>
+            {/* </View> */}
+          </View>
         </View>
-      </View>
+
+      ) : (
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>Expense Table</Text>
+          <Text style={styles.subtitle}>Monitor your financial landscape</Text>
+          <View style={styles.searchContainer}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Type to search..."
+              value={searchQuery}
+              onChangeText={handleSearch}
+            />
+            {
+              searchQuery && (
+                <TouchableOpacity style={{ left: -25 }} onPress={() => setSearchQuery('')} >
+                  <Text>
+                    X
+                  </Text>
+                </TouchableOpacity>
+              )}
+          </View>
+        </View>
+      )}
 
       <ScrollView
         refreshControl={
@@ -140,6 +215,8 @@ const Home = (props) => {
       >
         <Spinner animating={loading} />
         <ExpensesList
+          onEditPress={handleExpenseEdit}
+          onDeletePress={() => setSelection(true)}
           expenses={
             filteredExpenses.length > 0 ? filteredExpenses : allExpenses
           }
@@ -157,6 +234,31 @@ const styles = StyleSheet.create({
   },
   titleContainer: {
     paddingTop: 15,
+  },
+  selectionContainer: {
+    width: '100%',
+    backgroundColor: Colors.BLACK,
+    paddingVertical: 5,
+    alignSelf: 'center',
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10
+
+  },
+  actionContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 20,
+  },
+  actionButtons: {
+    // justifyContent: 'space-between',
+    flexDirection: 'row',
+    marginHorizontal: 50,
+  },
+
+  actionText: {
+    color: Colors.WHITE,
+    fontSize: 20,
+    fontWeight: 'bold'
   },
   title: {
     color: Colors.BUTTON_COLOR,
