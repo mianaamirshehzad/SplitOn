@@ -7,7 +7,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  Alert
+  Alert,
 } from "react-native";
 import React, { useState, useEffect, useCallback } from "react";
 import {
@@ -27,7 +27,6 @@ import { BUTTON_COLOR, Colors } from "../assets/Colours";
 import ExpensesList from "../components/ExpenseItem";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { doc, deleteDoc } from "firebase/firestore";
-
 
 const Home = (props) => {
   const auth = getAuth(app);
@@ -64,7 +63,7 @@ const Home = (props) => {
   };
 
   const handleExpenseEdit = () => {
-    console.log("+++++++++++++++++++")
+    console.log("+++++++++++++++++++");
   };
 
   const onRefresh = () => {
@@ -95,43 +94,43 @@ const Home = (props) => {
   };
 
   const expenseDeletor = async (item) => {
+    console.log("item: ", item);
     try {
-    setSelection(!selection);
-      const expenseRef = doc(db, 'expenses', item);
-      await deleteDoc(doc(expenseRef)); 
+      setSelection(!selection);
+      const expenseRef = doc(db, "expenses", item);
+      await deleteDoc(doc(expenseRef));
       // Refresh expenses after deletion
       setSelection(!selection);
       getUserExpenses();
-
     } catch (error) {
-      console.error('Error deleting expense: ', error);
+      console.error("Error deleting expense: ", error);
     }
   };
 
   const showAlert = () =>
-  Alert.alert(
-    'Do you want to delete expense item?',
-    'Caution: Delete cannot be undone.',
-    [
+    Alert.alert(
+      "Do you want to delete expense item?",
+      "Caution: Delete cannot be undone.",
+      [
+        {
+          text: "No",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel",
+        },
+        {
+          text: "Yes",
+          onPress: (item) => expenseDeletor(item),
+          style: "cancel",
+        },
+      ],
       {
-        text: 'No',
-        onPress: () => console.log('Cancel Pressed'),
-        style: 'cancel',
-      },
-      {
-        text: 'Yes',
-        onPress: (item) => expenseDeletor(item),
-        style: 'cancel',
-      },
-    ],
-    {
-      cancelable: true,
-      onDismiss: () =>
-        console.log(
-          'This alert was dismissed by tapping outside of the alert dialog.',
-        ),
-    },
-  );
+        cancelable: true,
+        onDismiss: () =>
+          console.log(
+            "This alert was dismissed by tapping outside of the alert dialog."
+          ),
+      }
+    );
 
   useFocusEffect(
     useCallback(() => {
@@ -141,8 +140,6 @@ const Home = (props) => {
   useEffect(() => {
     getUserExpenses();
   }, []);
-
-
 
   return (
     <View style={styles.container}>
@@ -159,32 +156,28 @@ const Home = (props) => {
         />
       </View>
       {selection ? (
-        <View style={styles.selectionContainer} >
-          <View style={styles.actionContainer} >
-            <Text style={styles.actionText}>
-              Action required:
-            </Text>
+        <View style={styles.selectionContainer}>
+          <View style={styles.actionContainer}>
+            <Text style={styles.actionText}>Action required</Text>
             {/* <View style={styles.actionButtons} > */}
-              <TouchableOpacity>
-                <MaterialCommunityIcons
-                  name="pencil"
-                  size={25}
-                  color={Colors.WHITE}
-
-                />
-              </TouchableOpacity>
-              <TouchableOpacity>
-                <MaterialCommunityIcons
-                  name="delete"
-                  size={25}
-                  color={Colors.WHITE}
-                  onPress={showAlert}
-                />
-              </TouchableOpacity>
+            <TouchableOpacity>
+              <MaterialCommunityIcons
+                name="pencil"
+                size={25}
+                color={Colors.WHITE}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity>
+              <MaterialCommunityIcons
+                name="delete"
+                size={25}
+                color={Colors.WHITE}
+                onPress={(item) => expenseDeletor(item)}
+              />
+            </TouchableOpacity>
             {/* </View> */}
           </View>
         </View>
-
       ) : (
         <View style={styles.titleContainer}>
           <Text style={styles.title}>Expense Table</Text>
@@ -196,14 +189,14 @@ const Home = (props) => {
               value={searchQuery}
               onChangeText={handleSearch}
             />
-            {
-              searchQuery && (
-                <TouchableOpacity style={{ left: -25 }} onPress={() => setSearchQuery('')} >
-                  <Text>
-                    X
-                  </Text>
-                </TouchableOpacity>
-              )}
+            {searchQuery && (
+              <TouchableOpacity
+                style={{ left: -25 }}
+                onPress={() => setSearchQuery("")}
+              >
+                <Text>X</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       )}
@@ -236,29 +229,28 @@ const styles = StyleSheet.create({
     paddingTop: 15,
   },
   selectionContainer: {
-    width: '100%',
+    width: "100%",
     backgroundColor: Colors.BLACK,
     paddingVertical: 5,
-    alignSelf: 'center',
-    borderBottomLeftRadius: 10,
-    borderBottomRightRadius: 10
-
+    alignSelf: "center",
+    borderRadius: 10,
+    marginTop: 20,
   },
   actionContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     padding: 20,
   },
   actionButtons: {
     // justifyContent: 'space-between',
-    flexDirection: 'row',
+    flexDirection: "row",
     marginHorizontal: 50,
   },
 
   actionText: {
     color: Colors.WHITE,
     fontSize: 20,
-    fontWeight: 'bold'
+    fontWeight: "bold",
   },
   title: {
     color: Colors.BUTTON_COLOR,
@@ -276,8 +268,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     marginHorizontal: 10,
     paddingVertical: 5,
-    justifyContent: 'center',
-    alignItems: 'center'
+    justifyContent: "center",
+    alignItems: "center",
   },
   searchInput: {
     flex: 1,
