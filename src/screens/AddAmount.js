@@ -24,6 +24,7 @@ const AddAmount = (props) => {
 
   // console.log("userEmail", auth);
   // console.log("name ", userName);
+  console.log(`User outsise=====: ${JSON.stringify(user)}`);
 
   const addExpenseToAccount = async () => {
     try {
@@ -39,10 +40,7 @@ const AddAmount = (props) => {
         date: date,
         addedBy: userEmail.trim(),
       });
-      console.log(
-        "Expense saved with ID: ",
-        expenseRef.id
-      );
+      console.log("Expense saved with ID: ", expenseRef.id);
 
       // Save the document locally using AsyncStorage upon successful upload
       let localExpenses = [];
@@ -57,8 +55,8 @@ const AddAmount = (props) => {
         JSON.stringify(localExpenses)
       );
 
-      const savedData = await AsyncStorage.getItem("localExpenses")
-      console.log('Data saved after uploading: ', savedData)
+      const savedData = await AsyncStorage.getItem("localExpenses");
+      console.log("Data saved after uploading: ", savedData);
     } catch (error) {
       const message = error.message;
       console.log(message);
@@ -153,4 +151,3 @@ const styles = StyleSheet.create({
 });
 
 export default AddAmount;
-

@@ -1,11 +1,22 @@
 import React from "react";
-import { FlatList, View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import {
+  FlatList,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+} from "react-native";
 
-const ExpenseItem = ({ addedBy, description, amount, date, onDeletePress }) => {
+const ExpenseItem = ({
+  addedBy,
+  description,
+  amount,
+  date,
+  onDeletePress,
+  onLongPress,
+}) => {
   return (
-    <TouchableOpacity style={styles.container}
-    onLongPress={(item) => onDeletePress(item)}
-      >
+    <TouchableOpacity style={styles.container} onLongPress={onLongPress}>
       <View style={styles.leftContainer}>
         <Text style={styles.date}>{date}</Text>
         <Text style={styles.description}>{description}</Text>
@@ -15,26 +26,6 @@ const ExpenseItem = ({ addedBy, description, amount, date, onDeletePress }) => {
         <Text style={styles.amount}>{amount}</Text>
       </View>
     </TouchableOpacity>
-  );
-};
-
-const ExpensesList = ({ expenses,onEditPress, onDeletePress }) => {
-  return (
-    <FlatList
-      data={expenses}
-      keyExtractor={(item, index) => index.toString()}
-      renderItem={({ item }) => (
-        <ExpenseItem
-          id = {item.id}
-          addedBy={item.addedBy}
-          description={item.description}
-          amount={item.amount}
-          date={item.date}
-          onEditPress={onEditPress}
-          onDeletePress={onDeletePress}
-        />
-      )}
-    />
   );
 };
 
@@ -74,4 +65,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ExpensesList;
+export default ExpenseItem;
