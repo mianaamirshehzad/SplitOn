@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
   Alert,
+  FlatList,
 } from "react-native";
 import React, { useState, useEffect, useCallback } from "react";
 import {
@@ -23,8 +24,8 @@ import { useFocusEffect } from "@react-navigation/native";
 import app from "../firebase";
 import GlobalStyles from "../styles/GlobalStyles";
 import Spinner from "../components/Spinner";
+import ExpenseItem from "../components/ExpenseItem";
 import { BUTTON_COLOR, Colors } from "../assets/Colours";
-import ExpensesList from "../components/ExpenseItem";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { doc, deleteDoc } from "firebase/firestore";
 
@@ -45,6 +46,7 @@ const Home = (props) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredExpenses, setFilteredExpenses] = useState([]);
   const [selection, setSelection] = useState(false);
+  const [selectedExpense, setSelectedExpense] = useState(null);
 
   const handleSearch = (text) => {
     setSearchQuery(text);
@@ -93,6 +95,10 @@ const Home = (props) => {
     }
   };
 
+  const itemSelector = (expense) => {
+    setSelectedExpense(expense);
+    setSelection(true);
+  };
   const expenseDeletor = async (item) => {
     console.log("item: ", item);
     try {
@@ -172,7 +178,7 @@ const Home = (props) => {
                 name="delete"
                 size={25}
                 color={Colors.WHITE}
-                onPress={(id) => expenseDeletor(id)}
+                onPress={() => showAlert()}
               />
             </TouchableOpacity>
             {/* </View> */}
@@ -207,14 +213,31 @@ const Home = (props) => {
         }
       >
         <Spinner animating={loading} />
-        <ExpensesList
+        <FlatList
+          data={filteredExpenses.length > 0 ? filteredExpenses : allExpenses}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({ item }) => (
+            <ExpenseItem
+              id={item.id}
+              addedBy={item.addedBy}
+              description={item.description}
+              amount={item.amount}
+              date={item.date}
+              onLongPress={showAlert}
+              // onEditPress={onEditPress}
+              // onLongPress={onLongPress}
+            />
+          )}
+        />
+        {/* <ExpensesList
           onEditPress={handleExpenseEdit}
           onDeletePress={(item) => expenseDeletor(item)}
           // onDeletePress={() => setSelection(true)}
+          onLongPress={(expense) => itemSelector(expense)}
           expenses={
             filteredExpenses.length > 0 ? filteredExpenses : allExpenses
-          }
-        />
+          } */}
+        {/* /> */}
       </ScrollView>
     </View>
   );

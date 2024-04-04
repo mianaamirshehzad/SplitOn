@@ -35,9 +35,9 @@ const Login = (props) => {
         .then((userCredential) => {
           const accessToken = userCredential.user.uid;
           console.log(`User: ${JSON.stringify(user)}`);
-          AsyncStorage.setItem("accessToken", accessToken);
+          AsyncStorage.setItem("accessToken", JSON.stringify(accessToken));
           console.log("User saved locally");
-          props.navigation.navigate(Strings.ADD_AMOUNT);
+          // props.navigation.navigate(Strings.ADD_AMOUNT);
           setLoading(false);
         })
         .catch((error) => {
