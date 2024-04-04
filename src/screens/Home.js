@@ -97,7 +97,7 @@ const Home = (props) => {
     console.log("item: ", item);
     try {
       setSelection(!selection);
-      const expenseRef = doc(db, "expenses", item);
+      const expenseRef = doc(db, "expenses", item.id);
       await deleteDoc(doc(expenseRef));
       // Refresh expenses after deletion
       setSelection(!selection);
@@ -172,7 +172,7 @@ const Home = (props) => {
                 name="delete"
                 size={25}
                 color={Colors.WHITE}
-                onPress={(item) => expenseDeletor(item)}
+                onPress={(id) => expenseDeletor(id)}
               />
             </TouchableOpacity>
             {/* </View> */}
@@ -209,7 +209,8 @@ const Home = (props) => {
         <Spinner animating={loading} />
         <ExpensesList
           onEditPress={handleExpenseEdit}
-          onDeletePress={() => setSelection(true)}
+          onDeletePress={(item) => expenseDeletor(item)}
+          // onDeletePress={() => setSelection(true)}
           expenses={
             filteredExpenses.length > 0 ? filteredExpenses : allExpenses
           }
