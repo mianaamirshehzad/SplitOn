@@ -17,6 +17,7 @@ import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import app from "../firebase";
 import Spinner from "../components/Spinner";
 import { Strings } from "../assets/constants/strings";
+import { Screens } from "../assets/constants/screens";
 
 const Login = (props) => {
   const auth = getAuth(app);
@@ -37,8 +38,8 @@ const Login = (props) => {
           console.log(`User: ${JSON.stringify(user)}`);
           AsyncStorage.setItem("accessToken", JSON.stringify(accessToken));
           console.log("User saved locally");
-          // props.navigation.navigate(Strings.ADD_AMOUNT);
           setLoading(false);
+          // props.navigation.navigate(Strings.HOME);
         })
         .catch((error) => {
           const errorCode = error.code;

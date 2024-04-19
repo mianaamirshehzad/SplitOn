@@ -1,18 +1,14 @@
-import * as React from "react";
-import { NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Screens } from "../assets/constants/screens";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import { useEffect, useState } from "react";
-import AuthenticationStack from ".";
-import BottomTab from "./BottomTab";
 import { Text, View } from "react-native";
+import BottomTab from "./BottomTab";
+import { NavigationContainer } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import AuthenticationStack from ".";
 
 const RootNavigator = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false); // New state variable for initialization status
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const auth = getAuth();
 
