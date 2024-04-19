@@ -9,6 +9,7 @@ import {
   View,
   Alert,
   FlatList,
+  SafeAreaView,
 } from "react-native";
 import React, { useState, useEffect, useCallback } from "react";
 import {
@@ -99,21 +100,9 @@ const Home = (props) => {
     setSelectedExpense(expense);
     setSelection(true);
   };
-  const expenseDeletor = async (item) => {
-    console.log("item: ", item);
-    try {
-      setSelection(!selection);
-      const expenseRef = doc(db, "expenses", item.id);
-      await deleteDoc(doc(expenseRef));
-      // Refresh expenses after deletion
-      setSelection(!selection);
-      getUserExpenses();
-    } catch (error) {
-      console.error("Error deleting expense: ", error);
-    }
-  };
 
-  const showAlert = () =>
+  const showAlert = (item) => {
+    setSelection(false);
     Alert.alert(
       "Do you want to delete expense item?",
       "Caution: Delete cannot be undone.",
@@ -137,6 +126,23 @@ const Home = (props) => {
           ),
       }
     );
+  };
+
+  const expenseDeletor = async (item) => {
+    setSelection(false);
+    console.log("item:=================> ", selectedExpense);
+
+    try {
+      setSelection(!selection);
+      const expenseRef = doc(db, "expenses", item.id);
+      await deleteDoc(doc(expenseRef));
+      // Refresh expenses after deletion
+      setSelection(!selection);
+      getUserExpenses();
+    } catch (error) {
+      console.error("Error deleting expense: ", error);
+    }
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -148,7 +154,7 @@ const Home = (props) => {
   }, []);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.cornerTop}>
         <Image
           source={require("../assets/images/corner.png")}
@@ -223,7 +229,8 @@ const Home = (props) => {
               description={item.description}
               amount={item.amount}
               date={item.date}
-              onLongPress={showAlert}
+              onLongPress={(item) => itemSelector(item)}
+              selected={selection}
               // onEditPress={onEditPress}
               // onLongPress={onLongPress}
             />
@@ -239,7 +246,7 @@ const Home = (props) => {
           } */}
         {/* /> */}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -258,7 +265,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     alignSelf: "center",
     borderRadius: 10,
-    marginTop: 20,
+    marginTop: 10,
   },
   actionContainer: {
     flexDirection: "row",

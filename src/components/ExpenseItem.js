@@ -6,6 +6,8 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from "react-native";
+import GlobalStyles from "../styles/GlobalStyles";
+import { Colors } from "../assets/Colours";
 
 const ExpenseItem = ({
   addedBy,
@@ -14,9 +16,17 @@ const ExpenseItem = ({
   date,
   onDeletePress,
   onLongPress,
+  selected,
 }) => {
   return (
-    <TouchableOpacity style={styles.container} onLongPress={onLongPress}>
+    <TouchableOpacity
+      style={
+        // selected
+        // ? [styles.container, { backgroundColor: Colors.BACKGROUND_COLOR }]
+        styles.container
+      }
+      onLongPress={onLongPress}
+    >
       <View style={styles.leftContainer}>
         <Text style={styles.date}>{date}</Text>
         <Text style={styles.description}>{description}</Text>
@@ -35,6 +45,16 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     backgroundColor: "#fff",
+    padding: 10,
+    margin: 3,
+    borderRadius: 8,
+    elevation: 2,
+  },
+  selectedContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: Colors.BACKGROUND_COLOR,
     padding: 10,
     margin: 3,
     borderRadius: 8,
