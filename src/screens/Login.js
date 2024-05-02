@@ -1,23 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
-  Alert,
   Image,
   Keyboard,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import GlobalStyles from "../styles/GlobalStyles";
 import CustomButton from "../components/CustomButton";
 import CustomInput from "../components/CustomInput";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import app from "../firebase";
 import Spinner from "../components/Spinner";
-import { Strings } from "../assets/constants/strings";
-import { Screens } from "../assets/constants/screens";
 
 const Login = (props) => {
   const auth = getAuth(app);
@@ -35,11 +30,14 @@ const Login = (props) => {
       signInWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
           const accessToken = userCredential.user.uid;
-          console.log(`User: ${JSON.stringify(user)}`);
-          AsyncStorage.setItem("accessToken", JSON.stringify(accessToken));
-          console.log("User saved locally");
+          console.log(
+            `User saved locally with accessToken: ${JSON.stringify(
+              accessToken
+            )}`
+          );
+          // AsyncStorage.setItem("accessToken", JSON.stringify(accessToken));
           setLoading(false);
-          // props.navigation.navigate(Strings.HOME);
+          // props.navigation.navigate(Strings.BOTTOM_TAB);
         })
         .catch((error) => {
           const errorCode = error.code;
@@ -55,9 +53,6 @@ const Login = (props) => {
     }
   };
 
-  // useEffect(() => {
-  //   getKeys();
-  // }, [])
   return (
     <View style={GlobalStyles.globalContainer}>
       <View style={styles.cornerTop}>
@@ -103,7 +98,6 @@ const Login = (props) => {
           <Text style={styles.boldText}>Sign up</Text>
         </TouchableOpacity>
       </View>
-      {/* </View> */}
     </View>
   );
 };
@@ -116,7 +110,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   forgot: {
-    // right: 40,
     padding: 5,
     alignItems: "flex-end",
     marginLeft: "auto",

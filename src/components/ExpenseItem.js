@@ -1,23 +1,7 @@
 import React from "react";
-import {
-  FlatList,
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
-import GlobalStyles from "../styles/GlobalStyles";
-import { Colors } from "../assets/Colours";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
-const ExpenseItem = ({
-  addedBy,
-  description,
-  amount,
-  date,
-  onDeletePress,
-  onLongPress,
-  selected,
-}) => {
+const ExpenseItem = ({ addedBy, description, amount, date, onLongPress }) => {
   return (
     <TouchableOpacity
       style={
@@ -45,16 +29,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     backgroundColor: "#fff",
-    padding: 10,
-    margin: 3,
-    borderRadius: 8,
-    elevation: 2,
-  },
-  selectedContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: Colors.BACKGROUND_COLOR,
     padding: 10,
     margin: 3,
     borderRadius: 8,

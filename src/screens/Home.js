@@ -20,7 +20,6 @@ import {
   query,
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import app from "../firebase";
 import GlobalStyles from "../styles/GlobalStyles";
@@ -33,14 +32,8 @@ import { doc, deleteDoc } from "firebase/firestore";
 const Home = (props) => {
   const auth = getAuth(app);
   const user = auth.currentUser;
-  // const {  } = user;
   const db = getFirestore(app);
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [date, setDate] = useState("");
-  const [amount, setAmount] = useState("");
-  const [description, setDescription] = useState("");
   const [allExpenses, setAllExpenses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -65,17 +58,12 @@ const Home = (props) => {
     setFilteredExpenses(filteredData);
   };
 
-  const handleExpenseEdit = () => {
-    console.log("+++++++++++++++++++");
-  };
-
   const onRefresh = () => {
     setRefreshing(true);
     getUserExpenses();
   };
 
   const getUserExpenses = async () => {
-    // setLoading(true);
     setRefreshing(true);
     try {
       const q = query(collection(db, "expenses"), orderBy("date", "desc"));
@@ -83,9 +71,11 @@ const Home = (props) => {
       const querySnapshot = await getDocs(q);
       const temp = [];
       querySnapshot.forEach((doc) => {
-        // doc.data() is never undefined for query doc snapshots
-        console.log(doc.id, " => ", doc.data());
-        temp.push(doc.data());
+        let id = doc.id;
+        let data = doc.data();
+        let merge = { ...data, id };
+        console.log(" => ", merge);
+        temp.push(merge);
       });
       setAllExpenses(temp);
     } catch (error) {
@@ -99,6 +89,7 @@ const Home = (props) => {
   const itemSelector = (expense) => {
     setSelectedExpense(expense);
     setSelection(true);
+    console.log("expense item", selectedExpense);
   };
 
   const showAlert = (item) => {
@@ -114,7 +105,7 @@ const Home = (props) => {
         },
         {
           text: "Yes",
-          onPress: (item) => expenseDeletor(item),
+          onPress: () => expenseDeletor(selectedExpense),
           style: "cancel",
         },
       ],
@@ -130,13 +121,10 @@ const Home = (props) => {
 
   const expenseDeletor = async (item) => {
     setSelection(false);
-    console.log("item:=================> ", selectedExpense);
-
     try {
       setSelection(!selection);
       const expenseRef = doc(db, "expenses", item.id);
-      await deleteDoc(doc(expenseRef));
-      // Refresh expenses after deletion
+      await deleteDoc(expenseRef);
       setSelection(!selection);
       getUserExpenses();
     } catch (error) {
@@ -152,6 +140,8 @@ const Home = (props) => {
   useEffect(() => {
     getUserExpenses();
   }, []);
+
+  console.log("all expenses array", allExpenses);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -229,22 +219,11 @@ const Home = (props) => {
               description={item.description}
               amount={item.amount}
               date={item.date}
-              onLongPress={(item) => itemSelector(item)}
+              onLongPress={() => itemSelector(item)}
               selected={selection}
-              // onEditPress={onEditPress}
-              // onLongPress={onLongPress}
             />
           )}
         />
-        {/* <ExpensesList
-          onEditPress={handleExpenseEdit}
-          onDeletePress={(item) => expenseDeletor(item)}
-          // onDeletePress={() => setSelection(true)}
-          onLongPress={(expense) => itemSelector(expense)}
-          expenses={
-            filteredExpenses.length > 0 ? filteredExpenses : allExpenses
-          } */}
-        {/* /> */}
       </ScrollView>
     </SafeAreaView>
   );
@@ -260,7 +239,7 @@ const styles = StyleSheet.create({
     paddingTop: 15,
   },
   selectionContainer: {
-    width: "100%",
+    width: "95%",
     backgroundColor: Colors.BLACK,
     paddingVertical: 5,
     alignSelf: "center",
@@ -273,7 +252,6 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   actionButtons: {
-    // justifyContent: 'space-between',
     flexDirection: "row",
     marginHorizontal: 50,
   },
