@@ -1,23 +1,51 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { Colors } from "../assets/Colours";
 
-const ExpenseItem = ({ addedBy, description, amount, date, onLongPress }) => {
+const ExpenseItem = ({
+  addedBy,
+  description,
+  amount,
+  date,
+  onLongPress,
+  selected,
+}) => {
   return (
     <TouchableOpacity
       style={
-        // selected
-        // ? [styles.container, { backgroundColor: Colors.BACKGROUND_COLOR }]
-        styles.container
+        selected
+          ? [styles.container, { backgroundColor: Colors.BUTTON_COLOR }]
+          : styles.container
       }
       onLongPress={onLongPress}
     >
       <View style={styles.leftContainer}>
-        <Text style={styles.date}>{date}</Text>
+        <Text
+          style={
+            selected ? [styles.date, { color: Colors.WHITE }] : styles.date
+          }
+        >
+          {date}
+        </Text>
         <Text style={styles.description}>{description}</Text>
-        <Text style={styles.addedBy}>{addedBy}</Text>
+        <Text
+          style={
+            selected
+              ? [styles.addedBy, { color: Colors.WHITE }]
+              : styles.addedBy
+          }
+        >
+          {addedBy}
+        </Text>
       </View>
       <View style={styles.rightContainer}>
-        <Text style={styles.amount}>{amount}</Text>
+        <Text
+          style={
+            selected ? [styles.amount, { color: Colors.WHITE }] : styles.amount
+          }
+        >
+          {amount}
+        </Text>
       </View>
     </TouchableOpacity>
   );

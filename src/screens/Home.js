@@ -93,7 +93,6 @@ const Home = (props) => {
   };
 
   const showAlert = (item) => {
-    setSelection(false);
     Alert.alert(
       "Do you want to delete expense item?",
       "Caution: Delete cannot be undone.",
@@ -141,7 +140,7 @@ const Home = (props) => {
     getUserExpenses();
   }, []);
 
-  console.log("all expenses array", allExpenses);
+  // console.log("all expenses array", allExpenses);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -220,7 +219,7 @@ const Home = (props) => {
               amount={item.amount}
               date={item.date}
               onLongPress={() => itemSelector(item)}
-              selected={selection}
+              selected={selectedExpense && selectedExpense.id == item.id}
             />
           )}
         />
