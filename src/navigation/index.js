@@ -1,11 +1,5 @@
 import * as React from "react";
-import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import Login from "../screens/Login";
-import Signup from "../screens/Signup";
-import Forgot from "../screens/Forgot";
-import Home from "../screens/Home";
-import Account from "../screens/Account";
 import { Strings } from "../assets/constants/strings";
 import { Screens } from "../assets/constants/screens";
 
