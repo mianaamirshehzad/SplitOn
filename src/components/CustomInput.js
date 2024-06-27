@@ -63,6 +63,7 @@ export default function CustomInput(props) {
             onChangeText={(t) => props.onChangeText(t)}
             value={props.value}
             keyboardType={props.keyboardType}
+            autoCapitalize="none"
           />
         )}
       </View>

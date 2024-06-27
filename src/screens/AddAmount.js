@@ -21,10 +21,7 @@ const AddAmount = (props) => {
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
   const [loading, setLoading] = useState(false);
-
-  // console.log("userEmail", auth);
-  // console.log("name ", userName);
-  console.log(`User outsise=====: ${JSON.stringify(user)}`);
+  console.log(`User outsise=====: ${JSON.stringify(userName)}`);
 
   const addExpenseToAccount = async () => {
     try {

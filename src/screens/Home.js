@@ -1,3 +1,4 @@
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Image,
   RefreshControl,
@@ -10,14 +11,15 @@ import {
   Alert,
   FlatList,
   SafeAreaView,
+  Button,
 } from "react-native";
-import React, { useState, useEffect, useCallback } from "react";
 import {
   collection,
   getDocs,
   getFirestore,
   orderBy,
   query,
+  updateDoc,
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { useFocusEffect } from "@react-navigation/native";
@@ -28,6 +30,8 @@ import ExpenseItem from "../components/ExpenseItem";
 import { BUTTON_COLOR, Colors } from "../assets/Colours";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { doc, deleteDoc } from "firebase/firestore";
+import AddAmount from "./AddAmount";
+import UpdateModal from "../components/UpdateModal";
 
 const Home = (props) => {
   const auth = getAuth(app);
@@ -41,6 +45,7 @@ const Home = (props) => {
   const [filteredExpenses, setFilteredExpenses] = useState([]);
   const [selection, setSelection] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const handleSearch = (text) => {
     setSearchQuery(text);
@@ -56,6 +61,11 @@ const Home = (props) => {
     );
 
     setFilteredExpenses(filteredData);
+  };
+
+  const cancelSearch = () => {
+    setSearchQuery("");
+    setFilteredExpenses("");
   };
 
   const onRefresh = () => {
@@ -98,13 +108,13 @@ const Home = (props) => {
       "Caution: Delete cannot be undone.",
       [
         {
-          text: "No",
-          onPress: () => console.log("Cancel Pressed"),
+          text: "Yes",
+          onPress: () => expenseDeletor(selectedExpense),
           style: "cancel",
         },
         {
-          text: "Yes",
-          onPress: () => expenseDeletor(selectedExpense),
+          text: "No",
+          onPress: () => console.log("Cancel Pressed"),
           style: "cancel",
         },
       ],
@@ -121,14 +131,40 @@ const Home = (props) => {
   const expenseDeletor = async (item) => {
     setSelection(false);
     try {
+      setLoading(true);
       setSelection(!selection);
       const expenseRef = doc(db, "expenses", item.id);
       await deleteDoc(expenseRef);
       setSelection(!selection);
+
       getUserExpenses();
+      setLoading(false);
     } catch (error) {
       console.error("Error deleting expense: ", error);
+    } finally {
+      setLoading(false);
     }
+  };
+  const updateExpense = async (item) => {
+    setSelection(false);
+    try {
+      setLoading(true);
+      setSelection(!selection);
+      const expenseRef = doc(db, "expenses", item.id);
+      await updateDoc(expenseRef, {
+        amount: 58900,
+      });
+      setSelection(!selection);
+      setSelectedExpense(null);
+      getUserExpenses();
+      setLoading(false);
+    } catch (error) {
+      console.error("Error updating expense: ", error);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setModalVisible(false);
   };
 
   useFocusEffect(
@@ -140,7 +176,7 @@ const Home = (props) => {
     getUserExpenses();
   }, []);
 
-  // console.log("all expenses array", allExpenses);
+  console.log("all expenses array", modalVisible);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -166,6 +202,7 @@ const Home = (props) => {
                 name="pencil"
                 size={25}
                 color={Colors.WHITE}
+                onPress={() => updateExpense(selectedExpense)}
               />
             </TouchableOpacity>
             <TouchableOpacity>
@@ -191,14 +228,12 @@ const Home = (props) => {
               onChangeText={handleSearch}
             />
             {searchQuery && (
-              <TouchableOpacity
-                style={{ left: -25 }}
-                onPress={() => setSearchQuery("")}
-              >
+              <TouchableOpacity style={{ left: -25 }} onPress={cancelSearch}>
                 <Text>X</Text>
               </TouchableOpacity>
             )}
           </View>
+          <Button title="show modal" onPress={() => setModalVisible(true)} />
         </View>
       )}
 
@@ -207,6 +242,12 @@ const Home = (props) => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
+        <UpdateModal
+          animating={modalVisible}
+          onClosePress={handleCloseModal}
+          onRequestClose={handleCloseModal}
+          onUpdate={()=> setModalVisible(false)}
+        />
         <Spinner animating={loading} />
         <FlatList
           data={filteredExpenses.length > 0 ? filteredExpenses : allExpenses}

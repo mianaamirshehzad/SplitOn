@@ -9,5 +9,5 @@ export const Strings = {
   ADD_EXPENSE: "+ Add Expense",
   BOTTOM_TAB: "BottomTab",
   ROOT_NAVIGATOR: "RootNavigaor",
-
+  UPDATE_EXPENSE: "Update Expense",
 };
