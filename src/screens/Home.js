@@ -42,6 +42,9 @@ const Home = (props) => {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [updatedAmount, setUpdatedAmount] = useState("");
+  const [updatedDesc, setUpdatedDesc] = useState("");
+  const [updatedDate, setUpdatedDate] = useState("");
   const [filteredExpenses, setFilteredExpenses] = useState([]);
   const [selection, setSelection] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState(null);
@@ -152,7 +155,8 @@ const Home = (props) => {
       setSelection(!selection);
       const expenseRef = doc(db, "expenses", item.id);
       await updateDoc(expenseRef, {
-        amount: 58900,
+        amount: updatedAmount,
+        description: updatedDesc,
       });
       setSelection(!selection);
       setSelectedExpense(null);
@@ -160,7 +164,14 @@ const Home = (props) => {
       setLoading(false);
     } catch (error) {
       console.error("Error updating expense: ", error);
+    } finally {
+      setModalVisible(false);
     }
+  };
+
+  const handleEdit = () => {
+    console.log("item ", selectedExpense);
+    setModalVisible(true);
   };
 
   const handleCloseModal = () => {
@@ -202,7 +213,7 @@ const Home = (props) => {
                 name="pencil"
                 size={25}
                 color={Colors.WHITE}
-                onPress={() => updateExpense(selectedExpense)}
+                onPress={(selectedExpense) => handleEdit(selectedExpense)}
               />
             </TouchableOpacity>
             <TouchableOpacity>
@@ -233,7 +244,6 @@ const Home = (props) => {
               </TouchableOpacity>
             )}
           </View>
-          <Button title="show modal" onPress={() => setModalVisible(true)} />
         </View>
       )}
 
@@ -242,12 +252,6 @@ const Home = (props) => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        <UpdateModal
-          animating={modalVisible}
-          onClosePress={handleCloseModal}
-          onRequestClose={handleCloseModal}
-          onUpdate={()=> setModalVisible(false)}
-        />
         <Spinner animating={loading} />
         <FlatList
           data={filteredExpenses.length > 0 ? filteredExpenses : allExpenses}
@@ -265,6 +269,24 @@ const Home = (props) => {
           )}
         />
       </ScrollView>
+      {modalVisible && (
+        <View style={styles.modal}>
+          <UpdateModal
+            animating={modalVisible == true}
+            onClose={handleCloseModal}
+            onRequestClose={handleCloseModal}
+            // amount={updatedAmount}
+            // description={updatedDesc}
+            // date={updatedDate}
+            onUpdate={(selectedExpense) => updateExpense(selectedExpense)}
+            description={selectedExpense.description}
+            amount={updatedAmount}
+            date={selectedExpense.date}
+            onChangeDesc={(text) => setUpdatedDesc(text)}
+            onChangeAmount={(text) => setUpdatedAmount(text)}
+          />
+        </View>
+      )}
     </SafeAreaView>
   );
 };
@@ -296,6 +318,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 50,
   },
 
+  modal: {
+    position: "absolute",
+    alignSelf: "flex-end",
+  },
   actionText: {
     color: Colors.WHITE,
     fontSize: 20,

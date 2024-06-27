@@ -21,20 +21,15 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Colors } from "../assets/Colours";
 
 const UpdateModal = (props) => {
-  const [amount, setAmount] = useState("");
-  const [description, setDescription] = useState("");
-  const [date, setDate] = useState("");
-  const [loading, setLoading] = useState(false);
+    const [amount, setAmount] = useState("");
+    const [description, setDescription] = useState("");
+    const [date, setDate] = useState("");
+    const [loading, setLoading] = useState(false);
 
   return (
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={props.visible}
-      onRequestClose={props.onRequestClose}
-    >
+    <Modal animationType="slide" transparent={true} visible={props.visible}>
       <View style={[styles.container]}>
-        <TouchableOpacity onPress={props.onClosePress} style={styles.cross}>
+        <TouchableOpacity onPress={props.onClose} style={styles.cross}>
           <Text style={styles.subtitle}>x</Text>
         </TouchableOpacity>
 
@@ -46,20 +41,20 @@ const UpdateModal = (props) => {
           showTitle={true}
           title="Amount"
           keyboardType="numeric"
-          placeholder="Rs."
-          //   value={amount}
-          onChangeText={props.onChangeText}
+          placeholder="Rs.1040"
+          value={props.amount}
+          onChangeText={props.onChangeAmount}
         />
         <CustomInput
           showTitle={true}
           title="Description"
-          value={description}
+          value={props.description}
           placeholder="Expense details..."
-          onChangeText={props.onChangeText}
+          onChangeText={props.onChangeDesc}
         />
         <CustomInput
           showTitle={true}
-          value={date}
+          value={props.date}
           title="Date"
           showDatePicker={true}
           onDateSelected={(date) => setDate(date.toDateString())}
