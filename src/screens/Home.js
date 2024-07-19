@@ -42,7 +42,7 @@ const Home = (props) => {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [updatedAmount, setUpdatedAmount] = useState("");
+  const [updatedAmount, setUpdatedAmount] = useState( "");
   const [updatedDesc, setUpdatedDesc] = useState("");
   const [updatedDate, setUpdatedDate] = useState("");
   const [filteredExpenses, setFilteredExpenses] = useState([]);
@@ -149,23 +149,27 @@ const Home = (props) => {
     }
   };
   const updateExpense = async (item) => {
+    setModalVisible(false);
     setSelection(false);
     try {
       setLoading(true);
       setSelection(!selection);
-      const expenseRef = doc(db, "expenses", item.id);
+      const expenseRef = doc(db, "expenses", selectedExpense?.id);
       await updateDoc(expenseRef, {
-        amount: updatedAmount,
-        description: updatedDesc,
+        amount: selectedExpense.amount,
+        description: selectedExpense.description,
+
       });
       setSelection(!selection);
       setSelectedExpense(null);
       getUserExpenses();
       setLoading(false);
     } catch (error) {
-      console.error("Error updating expense: ", error);
+      console.error("Updaing failed: ", error);
     } finally {
       setModalVisible(false);
+      setSelection(false)
+      setSelectedExpense("");
     }
   };
 
@@ -175,6 +179,8 @@ const Home = (props) => {
   };
 
   const handleCloseModal = () => {
+    setSelection(false);
+    setSelectedExpense('');
     setModalVisible(false);
   };
 
@@ -264,7 +270,7 @@ const Home = (props) => {
               amount={item.amount}
               date={item.date}
               onLongPress={() => itemSelector(item)}
-              selected={selectedExpense && selectedExpense.id == item.id}
+              selected={selectedExpense && selectedExpense?.id == item?.id}
             />
           )}
         />
@@ -275,15 +281,22 @@ const Home = (props) => {
             animating={modalVisible == true}
             onClose={handleCloseModal}
             onRequestClose={handleCloseModal}
-            // amount={updatedAmount}
-            // description={updatedDesc}
-            // date={updatedDate}
-            onUpdate={(selectedExpense) => updateExpense(selectedExpense)}
-            description={selectedExpense.description}
-            amount={updatedAmount}
+            onUpdate={updateExpense}
+            description={selectedExpense?.description}
+            amount={selectedExpense?.amount}
             date={selectedExpense.date}
-            onChangeDesc={(text) => setUpdatedDesc(text)}
-            onChangeAmount={(text) => setUpdatedAmount(text)}
+            onChangeDesc={(text) => 
+              setSelectedExpense({
+                ...selectedExpense,
+                description: text
+              })
+            }
+            onChangeAmount={(text) => {
+              setSelectedExpense({
+                ...selectedExpense,
+                amount: text
+              })
+            }}
           />
         </View>
       )}

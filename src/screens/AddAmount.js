@@ -1,4 +1,4 @@
-import { Keyboard, StyleSheet, View, Text } from "react-native";
+import { Keyboard, StyleSheet, View, Text, TextInput } from "react-native";
 import React, { useState, useEffect } from "react";
 import { addDoc, collection, getFirestore } from "firebase/firestore";
 import app from "../firebase";
@@ -21,16 +21,18 @@ const AddAmount = (props) => {
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
   const [loading, setLoading] = useState(false);
-  console.log(`User outsise=====: ${JSON.stringify(userName)}`);
+  // console.log(`User outsise=====: ${JSON.stringify(userName)}`);
 
   const addExpenseToAccount = async () => {
     try {
       setLoading(true);
       Keyboard.dismiss();
-      if (!amount && !description && !date) {
+
+      if (!amount || !description || !date) {
         alert("Oops! Fields missing");
         return;
       }
+
       const expenseRef = await addDoc(collection(db, "expenses"), {
         amount: amount.trim(),
         description: description.trim(),
@@ -39,7 +41,6 @@ const AddAmount = (props) => {
       });
       console.log("Expense saved with ID: ", expenseRef.id);
 
-      // Save the document locally using AsyncStorage upon successful upload
       let localExpenses = [];
       localExpenses.push({
         amount: amount.trim(),
@@ -65,29 +66,19 @@ const AddAmount = (props) => {
     }
   };
 
+  useEffect(() => {
+    const today = new Date().toDateString();
+    console.log(today);
+    setDate(today);
+  }, []);
+
   return (
     <View style={GlobalStyles.globalContainer}>
-      {/* <Text>Welcome {name}</Text> */}
+      {/* <Text>Welcome</Text> */}
       <Corner />
       <View style={styles.titleContainer}>
-        <Text style={styles.title}>What you spent?</Text>
+        <Text style={styles.title}>What did you spent?</Text>
         <Text style={styles.subtitle}>Document your expense</Text>
-        {/* <View style={styles.searchContainer}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Type to search..."
-            value={searchQuery}
-            onChangeText={handleSearch}
-          />
-          {
-            searchQuery && (
-              <TouchableOpacity style={{ left: -25 }} onPress={() => setSearchQuery('')} >
-                <Text>
-                  X
-                </Text>
-              </TouchableOpacity>
-            )}
-        </View> */}
       </View>
       <Spinner animating={loading} />
       <CustomInput
@@ -132,13 +123,15 @@ const styles = StyleSheet.create({
   },
   titleContainer: {
     paddingTop: 15,
+    justifyContent: "center",
+    alignItems: "center",
   },
   title: {
     color: Colors.BUTTON_COLOR,
     fontSize: 24,
     marginTop: 25,
     fontWeight: "bold",
-    paddingHorizontal: 10,
+    padding: 10,
   },
   subtitle: {
     color: Colors.BLACK,

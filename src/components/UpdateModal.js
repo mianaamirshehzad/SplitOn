@@ -1,23 +1,15 @@
 import {
-  Keyboard,
   StyleSheet,
   View,
   Text,
   Modal,
-  Pressable,
   TouchableOpacity,
 } from "react-native";
-import React, { useState, useEffect } from "react";
-import { addDoc, collection, getFirestore } from "firebase/firestore";
-import app from "../firebase";
-import GlobalStyles from "../styles/GlobalStyles";
+import React, { useState } from "react";
 import CustomButton from "../components/CustomButton";
 import CustomInput from "../components/CustomInput";
-import { getAuth } from "@firebase/auth";
-import Corner from "../components/Corner";
 import { Strings } from "../assets/constants/strings";
 import Spinner from "../components/Spinner";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Colors } from "../assets/Colours";
 
 const UpdateModal = (props) => {
@@ -57,7 +49,7 @@ const UpdateModal = (props) => {
           value={props.date}
           title="Date"
           showDatePicker={true}
-          onDateSelected={(date) => setDate(date.toDateString())}
+          // onDateSelected={props.onDateSelected}
         />
         <CustomButton name={Strings.UPDATE_EXPENSE} onPress={props.onUpdate} />
       </View>
