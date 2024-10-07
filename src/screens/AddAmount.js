@@ -24,7 +24,7 @@ const AddAmount = (props) => {
 
   // console.log("userEmail", auth);
   // console.log("name ", userName);
-  console.log(`User outsise=====: ${JSON.stringify(user)}`);
+  // console.log(`User outsise=====: ${JSON.stringify(user)}`);
 
   const addExpenseToAccount = async () => {
     try {

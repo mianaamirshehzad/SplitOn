@@ -22,12 +22,13 @@ import {
 import { getAuth } from "firebase/auth";
 import { useFocusEffect } from "@react-navigation/native";
 import app from "../firebase";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { doc, deleteDoc } from "firebase/firestore";
 import GlobalStyles from "../styles/GlobalStyles";
 import Spinner from "../components/Spinner";
 import ExpenseItem from "../components/ExpenseItem";
 import { BUTTON_COLOR, Colors } from "../assets/Colours";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { doc, deleteDoc } from "firebase/firestore";
+
 
 const Home = (props) => {
   const auth = getAuth(app);
@@ -67,7 +68,6 @@ const Home = (props) => {
     setRefreshing(true);
     try {
       const q = query(collection(db, "expenses"), orderBy("date", "desc"));
-
       const querySnapshot = await getDocs(q);
       const temp = [];
       querySnapshot.forEach((doc) => {
@@ -79,7 +79,7 @@ const Home = (props) => {
       });
       setAllExpenses(temp);
     } catch (error) {
-      console.log(error);
+      console.log(error.message);
     } finally {
       setRefreshing(false);
       setLoading(false);
@@ -218,7 +218,7 @@ const Home = (props) => {
               addedBy={item.addedBy}
               description={item.description}
               amount={item.amount}
-              date={item.date}
+              date={item.date.toString()} // React needs to have string representation for date
               onLongPress={() => itemSelector(item)}
               selected={selection}
             />

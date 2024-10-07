@@ -78,6 +78,7 @@ const Login = (props) => {
         placeholder="Email"
         onChangeText={(text) => setEmail(text)}
         value={email}
+        keyboardType = {"email"}
       />
       <CustomInput
         onChangeText={(text) => setPassword(text)}
