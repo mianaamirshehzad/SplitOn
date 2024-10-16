@@ -9,5 +9,6 @@ export const Strings = {
   ADD_EXPENSE: "+ Add Expense",
   BOTTOM_TAB: "BottomTab",
   ROOT_NAVIGATOR: "RootNavigaor",
-
+  GROUPS: "Groups",
+  CREATE_OWN_GROUP: "Create Your Own Group",
 };

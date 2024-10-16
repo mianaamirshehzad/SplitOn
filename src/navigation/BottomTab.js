@@ -43,6 +43,20 @@ function BottomTab() {
         }}
       />
       <Tab.Screen
+        name={Strings.GROUPS}
+        component={Screens.GROUPS_SCREEN}
+        options={{
+          headerShown: false,
+          tabBarIcon: ({ focused, color, size }) => (
+            <MaterialCommunityIcons
+              name="account-group"
+              color={focused ? Colors.BUTTON_COLOR : Colors.BRIGHT}
+              size={size}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen
         name={Strings.ACCOUNT}
         component={Screens.ACCOUNT_SCREEN}
         options={{
