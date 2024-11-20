@@ -1,10 +1,10 @@
 import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import React, { useState } from 'react';
-import GlobalStyles from '../styles/GlobalStyles';
-import CustomButton from '../components/CustomButton';
-import CustomInput from '../components/CustomInput';
+import GlobalStyles from '../../styles/GlobalStyles';
+import CustomButton from '../../components/CustomButton';
+import CustomInput from '../../components/CustomInput';
 import { getAuth, sendPasswordResetEmail } from "firebase/auth";
-import app from '../firebase';
+import app from '../../firebase';
 
 
 const Forgot = (props) => {
@@ -32,17 +32,17 @@ const Forgot = (props) => {
         <View style={GlobalStyles.globalContainer}>
             <View style={styles.cornerTop}>
                 <Image
-                    source={require('../assets/images/corner.png')}
+                    source={require('../../assets/images/corner.png')}
                     style={GlobalStyles.corner}
                 />
             </View>
             <Image
-                source={require('../assets/images/forgot.jpg')}
+                source={require('../../assets/images/forgot.jpg')}
                 style={GlobalStyles.image}
             />
             <View style={styles.cornerbottom}>
                 <Image
-                    source={require('../assets/images/corner.png')}
+                    source={require('../../assets/images/corner.png')}
                     style={GlobalStyles.corner}
                 />
             </View>

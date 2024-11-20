@@ -11,4 +11,5 @@ export const Strings = {
   ROOT_NAVIGATOR: "RootNavigaor",
   GROUPS: "Groups",
   CREATE_OWN_GROUP: "Create Your Own Group",
+  GROUP_DETAILS: "GroupDetails"
 };

@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
 import { Colors } from "../assets/Colours";
 
-const Group = ({ group }) => {
+const Group = ({ group, onGroupPress }) => {
   const {
     groupImage,
     groupName,
@@ -12,7 +12,6 @@ const Group = ({ group }) => {
     createdAt,
     createdBy,
   } = group;
-  console.log("item ", group);
 
   const creationDate = new Date(
     createdAt.seconds * 1000 + createdAt.nanoseconds / 1000000
@@ -26,7 +25,7 @@ const Group = ({ group }) => {
   });
 
   return (
-    <TouchableOpacity style={styles.container}>
+    <TouchableOpacity style={styles.container} onPress={onGroupPress} >
       <View style={styles.leftContainer}>
         <TouchableOpacity>
           <Image

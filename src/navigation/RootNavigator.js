@@ -3,7 +3,7 @@ import { View } from "react-native";
 import BottomTab from "./BottomTab";
 import { NavigationContainer } from "@react-navigation/native";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
-import AuthenticationStack from "../navigation/index";
+import { AuthenticationStack } from "../navigation/index";
 
 const RootNavigator = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
