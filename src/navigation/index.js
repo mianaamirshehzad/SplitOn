@@ -45,6 +45,14 @@ export const AuthenticationStack = () => {
           headerShown: true, // Show header for GroupDetails
         })}
       />
+      <Stack.Screen
+        name={Strings.SPLIT_GROUP_EXPENSE}
+        component={Screens.SPLIT_GROUP_EXPENSE}
+        options={({ route }) => ({
+          tabBarStyle: { display: 'none' }, // Hide bottom tab bar on GroupDetails screen
+          headerShown: true, // Show header for GroupDetails
+        })}
+      />
     </Stack.Navigator>
   );
 };

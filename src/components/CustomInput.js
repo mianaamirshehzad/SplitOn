@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     borderColor: BUTTON_COLOR,
-    borderWidth: 2,
+    borderWidth: 0.5,
     borderRadius: 10,
     height: 50,
     padding: 15,
