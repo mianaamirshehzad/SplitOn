@@ -11,7 +11,6 @@ import  {AuthenticationStack}  from "../../navigation/index";
 import  {GroupsStack} from "../../navigation/index";
 import RootNavigator from "../../navigation/RootNavigator";
 import Home from "../../screens/Home/Home";
-import SplitGroupExpense from "../../screens/Group/SplitGroupExpense";
 
 
 export const Screens = {
@@ -26,6 +25,5 @@ export const Screens = {
   GROUPS_STACK: GroupsStack,
   ROOT_NAVIGATOR: RootNavigator,
   GROUPS_SCREEN: Groups,
-  GROUP_DETAILS: GroupDetails,
-  SPLIT_GROUP_EXPENSE: SplitGroupExpense
+  GROUP_DETAILS: GroupDetails
 };

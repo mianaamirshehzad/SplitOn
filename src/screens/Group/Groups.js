@@ -42,9 +42,6 @@ const Groups = () => {
     setGroups(groupsData);
   };
 
-  console.log("groups ", groups);
-  
-
   useEffect(() => {
     fetchGroups();
   }, []);
