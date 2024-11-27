@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
-const ExpenseItem = ({ addedBy, description, amount, date, onLongPress, id, selected}) => {
+const ExpenseItem = ({ addedBy, description, amount, date, onLongPress }) => {
   return (
     <TouchableOpacity
       style={
@@ -9,7 +9,6 @@ const ExpenseItem = ({ addedBy, description, amount, date, onLongPress, id, sele
         // ? [styles.container, { backgroundColor: Colors.BACKGROUND_COLOR }]
         styles.container
       }
-      id={id}
       onLongPress={onLongPress}
     >
       <View style={styles.leftContainer}>
@@ -31,14 +30,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#fff",
     padding: 10,
-    marginHorizontal: 5,
-    marginVertical: 3,
+    margin: 3,
     borderRadius: 8,
-    elevation: 5, // Adds shadow for Android
-    shadowColor: "#000", // Adds shadow for iOS
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    elevation: 2,
   },
   leftContainer: {
     flexDirection: "column",
@@ -54,7 +48,6 @@ const styles = StyleSheet.create({
   amount: {
     fontSize: 16,
     color: "green",
-    fontWeight: 'bold'
   },
   date: {
     fontSize: 10,

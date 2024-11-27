@@ -1,37 +1,28 @@
-import React, { useCallback, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Keyboard, TouchableOpacity, Share, FlatList, Alert, TextInput, RefreshControl, Image, Switch } from 'react-native';
-// import firestore from '@react-native-firebase/firestore';
-import * as Sharing from 'expo-sharing';
-import Checkbox from 'expo-checkbox';
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { MaterialIcons } from "@expo/vector-icons";
+import React, { useCallback, useState, useEffect, useFocusEffect } from 'react';
+import { View, Text, StyleSheet,Keyboard, TouchableOpacity, FlatList } from 'react-native';
 import { Colors } from '../../assets/Colours';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import ExpenseItem from '../../components/ExpenseItem';
-import { collection, getDocs, getFirestore, orderBy, query, doc, deleteDoc, addDoc, Firestore, where } from '@firebase/firestore';
+import { collection, getDocs, getFirestore, orderBy, query } from '@firebase/firestore';
 import app from '../../firebase';
 import { getAuth } from 'firebase/auth';
 import ExpenseModal from '../../components/ExpenseModal';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Screens } from '../../assets/constants/screens';
-import ExpenseCalculatorModal from '../../components/ExpenseCalculatorModal';
-import Login from '../Authentication/Login';
 
 const GroupDetails = ({ route }) => {
   const { groupData, title } = route.params || {};
-  const { groupName, groupDescription, members, groupImage, id } = groupData;
+  const { groupName, groupDescription, members } = groupData;
   const navigation = useNavigation();
   const auth = getAuth(app);
   const user = auth.currentUser;
   const db = getFirestore(app);
 
   const [modalVisible, setModalVisible] = useState(false);
-  const [showCalculateModal, setShowCalculateModal] = useState(false);
   const [allExpenses, setAllExpenses] = useState([]);
   const [filteredExpenses, setFilteredExpenses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [selection, setSelection] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState(null);
   const userEmail = auth.currentUser ? auth.currentUser.email : null;
@@ -39,17 +30,15 @@ const GroupDetails = ({ route }) => {
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
-  const [currentGroupId, setCurrentGroupId] = useState(id)
   const [showModal, setShowModal] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [totalAmount, setTotalAmount] = useState(0);
-  const [isEnabled, setIsEnabled] = useState(false);
 
+  // console.log("Received groupData:", groupData);
+  // console.log("Received allExpenses:", allExpenses);
 
   const getUserExpenses = async () => {
     setRefreshing(true);
     try {
-      const q = query(collection(db, "expenses"), where("groupId", "==", currentGroupId));
+      const q = query(collection(db, "expenses"), orderBy("date", "desc"));
       const querySnapshot = await getDocs(q);
       const temp = [];
       querySnapshot.forEach((doc) => {
@@ -60,7 +49,6 @@ const GroupDetails = ({ route }) => {
         temp.push(merge);
       });
       setAllExpenses(temp);
-      calculateTotal();
     } catch (error) {
       console.log(error.message);
     } finally {
@@ -69,110 +57,54 @@ const GroupDetails = ({ route }) => {
     }
   };
 
-  const calculateTotal = () => {
-    setTimeout(() => {
-      let total = 0;
-      allExpenses?.forEach((value) => {
-        total += Number(value.amount);
-      })
-      setTotalAmount(total);
-    }, 3000);
-
-  };
-
-  const generateInviteLink = async () => {
-    const inviteLink = `https://spliton.com/join-group/${currentGroupId}`;
-    console.log(inviteLink);
-
-    try {
-      const result = await Share.share({
-        message: `Join our group using this link: ${inviteLink}`,
-      });
-  
-      if (result.action === Share.sharedAction) {
-        if (result.activityType) {
-          console.log('Shared with activity type:', result.activityType);
-        } else {
-          console.log('Link shared successfully!');
-        }
-      } else if (result.action === Share.dismissedAction) {
-        console.log('Share dismissed.');
-      }
-    } catch (error) {
-      console.error('Error sharing invite link:', error.message);
-    }
-  };
-
   const itemSelector = (expense) => {
     setSelectedExpense(expense);
     setSelection(true);
     console.log("expense item", selectedExpense);
   };
+  
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    getUserExpenses();
-  };
-
-  const showAlert = (item) => {
-    setSelection(false);
-    Alert.alert(
-      "Do you want to delete expense item?",
-      "Caution: Delete cannot be undone.",
-      [
-        {
-          text: "Yes",
-          onPress: () => expenseDeletor(selectedExpense),
-          style: "cancel",
-        },
-        {
-          text: "No",
-          onPress: () => console.log("Cancel Pressed"),
-          style: "cancel",
-        },
-
-      ],
-      {
-        cancelable: true,
-        onDismiss: () =>
-          console.log(
-            "This alert was dismissed by tapping outside of the alert dialog."
-          ),
-      }
-    );
-  };
-
-  const toggleSwitch = () => {
-    setIsEnabled(!isEnabled);
-  }
-
-  const expenseDeletor = async (item) => {
-    setSelection(false);
+  const addExpenseToAccount = async () => {
     try {
-      setSelection(!selection);
-      const expenseRef = doc(db, "expenses", item.id);
-      await deleteDoc(expenseRef);
-      setSelection(!selection);
-      getUserExpenses();
+      setLoading(true);
+      Keyboard.dismiss();
+      if (!amount && !description && !date) {
+        alert("Oops! Fields missing");
+        return;
+      }
+      const expenseRef = await addDoc(collection(db, "expenses"), {
+        amount: amount.trim(),
+        description: description.trim(),
+        date: date,
+        addedBy: userEmail.trim(),
+      });
+      console.log("Expense saved with ID: ", expenseRef.id);
+
+      // Save the document locally using AsyncStorage upon successful upload
+      let localExpenses = [];
+      localExpenses.push({
+        amount: amount.trim(),
+        description: description.trim(),
+        date: date,
+        addedBy: userEmail.trim(),
+      });
+      await AsyncStorage.setItem(
+        "localExpenses",
+        JSON.stringify(localExpenses)
+      );
+
+      const savedData = await AsyncStorage.getItem("localExpenses");
+      console.log("Data saved after uploading: ", savedData);
     } catch (error) {
-      console.error("Error deleting expense: ", error);
+      const message = error.message;
+      console.log("Error creating expense ", message);
+    } finally {
+      setAmount(null);
+      setDescription(null);
+      setDate("");
+      setLoading(false);
+      setShowModal(false);
     }
-  };
-
-  const handleSearch = (text) => {
-    setSearchQuery(text);
-    if (!text || text === " ") {
-      setFilteredExpenses(allExpenses);
-    }
-    const filteredData = allExpenses.filter(
-      (expense) =>
-        (expense.description &&
-          expense.description.toLowerCase().includes(text.toLowerCase())) ||
-        (expense.amount &&
-          String(expense.amount).toLowerCase().includes(text.toLowerCase()))
-    );
-
-    setFilteredExpenses(filteredData);
   };
 
 
@@ -183,8 +115,6 @@ const GroupDetails = ({ route }) => {
   // );
   useEffect(() => {
     getUserExpenses();
-    // calculateTotal();
-
   }, []);
 
   useEffect(() => {
@@ -198,13 +128,9 @@ const GroupDetails = ({ route }) => {
         ),
         headerRight: () => (
           <TouchableOpacity >
-            <Ionicons name="settings-outline" size={24} color="white" />
+            <Ionicons name="settings-outline" size={24} color="black" />
           </TouchableOpacity>
         ),
-        headerStyle: {
-          backgroundColor: Colors.BUTTON_COLOR,
-          height: 100
-        },
       });
     }
   }, [groupData]);
@@ -215,101 +141,8 @@ const GroupDetails = ({ route }) => {
     }
   }, [title])
 
-  console.log("modal ", showCalculateModal);
-
-
   return (
     <View style={styles.container}>
-      <View style={styles.headerContainer} >
-        <View style={styles.imageContainer} >
-          <Image source={{
-            uri: groupImage
-          }}
-            style={styles.image}
-          />
-        </View>
-        <View style={{ flexDirection: 'row', gap: 25 }} >
-          <TouchableOpacity>
-            <MaterialCommunityIcons
-              name="pencil"
-              size={25}
-              color={Colors.BUTTON_COLOR}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <MaterialCommunityIcons
-              name="account-multiple-plus"
-              size={25}
-              color={Colors.BUTTON_COLOR}
-              onPress={generateInviteLink}
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
-      {selection ? (
-        <View style={styles.selectionContainer}>
-          <View style={styles.actionContainer}>
-            <Text style={styles.actionText}>Action required</Text>
-            {/* <View style={styles.actionButtons} > */}
-            <TouchableOpacity>
-              <MaterialCommunityIcons
-                name="pencil"
-                size={25}
-                color={Colors.WHITE}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity>
-              <MaterialCommunityIcons
-                name="delete"
-                size={25}
-                color={Colors.WHITE}
-                onPress={() => showAlert()}
-              />
-            </TouchableOpacity>
-            {/* </View> */}
-          </View>
-        </View>
-      ) : (
-        <View style={styles.titleContainer}>
-          <Text style={styles.title}>Summary </Text>
-          <View style={[styles.inputWrapper, { justifyContent: 'space-between' }]} >
-            <Text style={styles.subtitle}>Rs.{totalAmount} are spent in {groupName}</Text>
-            <View style={styles.toggle} >
-              <TouchableOpacity onPress={() => setShowCalculateModal(true)} >
-                <Text>
-                  Split
-                </Text>
-              </TouchableOpacity>
-              <Switch
-                trackColor={{ false: '#767577', true: '#81b0ff' }}
-                thumbColor={isEnabled ? '#f5dd4b' : '#f4f3f4'}
-                ios_backgroundColor="#3e3e3e"
-                onValueChange={toggleSwitch}
-                value={isEnabled}
-              />
-            </View>
-          </View>
-          <View style={styles.searchContainer}>
-            <View style={styles.inputWrapper}>
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Find something that is not here..."
-                value={searchQuery}
-                onChangeText={handleSearch}
-              />
-              {searchQuery && (
-                <TouchableOpacity
-                  style={styles.iconContainer}
-                  onPress={() => setSearchQuery("")}
-                >
-                  <MaterialIcons name="cancel" size={25} color={Colors.black} />
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
-        </View>
-      )}
-
       <FlatList
         data={filteredExpenses.length > 0 ? filteredExpenses : allExpenses}
         keyExtractor={(item, index) => index.toString()}
@@ -324,29 +157,19 @@ const GroupDetails = ({ route }) => {
             selected={selection}
           />
         )}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
       />
 
       <ExpenseModal
         isVisible={modalVisible}
         onClose={() => setModalVisible(false)}
-        fetchLatestData={getUserExpenses}
-        id={currentGroupId}
-      />
+        fetchLatestData = {getUserExpenses}
 
-      <ExpenseCalculatorModal
-        isVisible={showCalculateModal}
-        onClose={() => setShowCalculateModal(false)}
-        expenses={allExpenses}
-        groupMembers={members.length}
       />
 
       {/* Floating Plus Icon */}
       <TouchableOpacity
         style={styles.floatingPlusButton}
-        onPress={() => setModalVisible(true)}
+        onPress = {() => setModalVisible(true)}
       >
         <Ionicons name="add" size={30} color="white" />
       </TouchableOpacity>
@@ -360,48 +183,22 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: Colors.BACKGROUND_COLOR,
   },
-  headerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginHorizontal: 10,
-    marginVertical: 10
-  },
-  imageContainer: {
-    // backgroundColor: 'pink'
-  },
-  image: { width: 70, height: 70, borderRadius: 50 },
   header: {
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center'
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: Colors.WHITE
   },
   headerSubtitle: {
     fontSize: 14,
-    color: "black",
-  },
-  titleContainer: {
-    paddingTop: 15,
+    color: "gray",
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 10,
-    paddingHorizontal: 10,
-
-  },
-  toggle: {
-    alignItems: 'center',
-    paddingHorizontal: 10
-  },
-  subtitle: {
-    color: Colors.BLACK,
-    fontSize: 15,
-    paddingHorizontal: 10,
   },
   members: {
     fontSize: 16,
@@ -410,55 +207,6 @@ const styles = StyleSheet.create({
   date: {
     fontSize: 14,
     color: 'gray',
-  },
-  selectionContainer: {
-    width: "95%",
-    backgroundColor: Colors.BLACK,
-    paddingVertical: 5,
-    alignSelf: "center",
-    borderRadius: 10,
-    marginTop: 10,
-  },
-  actionContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: 20,
-  },
-  actionButtons: {
-    flexDirection: "row",
-    marginHorizontal: 50,
-  },
-  actionText: {
-    color: Colors.WHITE,
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  searchContainer: {
-    flexDirection: "row",
-    marginHorizontal: 10,
-    paddingVertical: 5,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  inputWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    position: "relative",
-    width: "100%",
-  },
-  searchInput: {
-    flex: 1,
-    borderWidth: 0.5,
-    borderRadius: 10,
-    padding: 10,
-    marginRight: 5,
-    borderColor: Colors.BUTTON_COLOR,
-  },
-  iconContainer: {
-    position: "absolute",
-    right: 15, // Position the icon inside the input field
-    justifyContent: "center",
-    alignItems: "center",
   },
   floatingPlusButton: {
     position: "absolute",

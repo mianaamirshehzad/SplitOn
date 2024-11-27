@@ -6,5 +6,4 @@ export const Colors = {
   WHITE: "white",
   BLACK: "black",
   BRIGHT: "#b9ec2c",
-  RED: 'red'
 };
