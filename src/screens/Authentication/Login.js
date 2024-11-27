@@ -76,7 +76,7 @@ const Login = (props) => {
       <Spinner animating={loading} />
       <CustomInput
         placeholder="Email"
-        onChangeText={(text) => setEmail(text)}
+        onChangeText={(text) => setEmail(text.toLowerCase())}
         value={email}
         keyboardType = {"email"}
       />
