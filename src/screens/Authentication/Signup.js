@@ -7,11 +7,11 @@ import {
   View,
 } from "react-native";
 import React, { useState } from "react";
-import GlobalStyles from "../styles/GlobalStyles";
-import CustomButton from "../components/CustomButton";
-import CustomInput from "../components/CustomInput";
+import GlobalStyles from "../../styles/GlobalStyles";
+import CustomButton from "../../components/CustomButton";
+import CustomInput from "../../components/CustomInput";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
-import app from "../firebase";
+import app from "../../firebase";
 import { getFirestore, collection, addDoc } from "firebase/firestore";
 
 
@@ -69,18 +69,18 @@ const Signup = (props) => {
     <View style={GlobalStyles.globalContainer}>
       <View style={styles.cornerTop}>
         <Image
-          source={require("../assets/images/corner.png")}
+          source={require("../../assets/images/corner.png")}
           style={GlobalStyles.corner}
         />
       </View>
       <View style={styles.cornerbottom}>
         <Image
-          source={require("../assets/images/corner.png")}
+          source={require("../../assets/images/corner.png")}
           style={GlobalStyles.corner}
         />
       </View>
       <Image
-        source={require("../assets/images/signup.jpg")}
+        source={require("../../assets/images/signup.jpg")}
         style={GlobalStyles.image}
       />
       {/* <View  style={styles.container} > */}

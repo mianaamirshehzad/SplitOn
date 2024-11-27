@@ -21,13 +21,13 @@ import {
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { useFocusEffect } from "@react-navigation/native";
-import app from "../firebase";
+import app from "../../firebase";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { doc, deleteDoc } from "firebase/firestore";
-import GlobalStyles from "../styles/GlobalStyles";
-import Spinner from "../components/Spinner";
-import ExpenseItem from "../components/ExpenseItem";
-import { BUTTON_COLOR, Colors } from "../assets/Colours";
+import GlobalStyles from "../../styles/GlobalStyles";
+import Spinner from "../../components/Spinner";
+import ExpenseItem from "../../components/ExpenseItem";
+import { BUTTON_COLOR, Colors } from "../../assets/Colours";
 
 
 const Home = (props) => {
@@ -36,10 +36,10 @@ const Home = (props) => {
   const db = getFirestore(app);
 
   const [allExpenses, setAllExpenses] = useState([]);
+  const [filteredExpenses, setFilteredExpenses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filteredExpenses, setFilteredExpenses] = useState([]);
   const [selection, setSelection] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState(null);
 
@@ -147,13 +147,13 @@ const Home = (props) => {
     <SafeAreaView style={styles.container}>
       <View style={styles.cornerTop}>
         <Image
-          source={require("../assets/images/corner.png")}
+          source={require("../../assets/images/corner.png")}
           style={GlobalStyles.corner}
         />
       </View>
       <View style={styles.cornerbottom}>
         <Image
-          source={require("../assets/images/corner.png")}
+          source={require("../../assets/images/corner.png")}
           style={GlobalStyles.corner}
         />
       </View>

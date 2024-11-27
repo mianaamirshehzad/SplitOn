@@ -4,12 +4,14 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Colors } from "../assets/Colours";
 import { Strings } from "../assets/constants/strings";
 import { Screens } from "../assets/constants/screens";
+import { GroupsStack } from "../navigation/index";
 
 const Tab = createBottomTabNavigator();
 
 function BottomTab() {
   return (
     <Tab.Navigator
+      initialRouteName="Groups"
       screenOptions={{
         tabBarHideOnKeyboard: true,
       }}
@@ -44,7 +46,7 @@ function BottomTab() {
       />
       <Tab.Screen
         name={Strings.GROUPS}
-        component={Screens.GROUPS_SCREEN}
+        component={Screens.GROUPS_STACK}
         options={{
           headerShown: false,
           tabBarIcon: ({ focused, color, size }) => (

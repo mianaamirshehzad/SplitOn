@@ -22,13 +22,13 @@ import {
 } from "firebase/firestore";
 import { getAuth, signOut } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import app from "../firebase";
-import GlobalStyles from "../styles/GlobalStyles";
-import Spinner from "../components/Spinner";
-import CustomButton from "../components/CustomButton";
-import { BUTTON_COLOR, Colors } from "../assets/Colours";
-import { Screens } from "../assets/constants/screens";
-import ExpensesList from "../components/ExpenseItem";
+import app from "../../firebase";
+import GlobalStyles from "../../styles/GlobalStyles";
+import Spinner from "../../components/Spinner";
+import CustomButton from "../../components/CustomButton";
+import { BUTTON_COLOR, Colors } from "../../assets/Colours";
+import { Screens } from "../../assets/constants/screens";
+import ExpensesList from "../../components/ExpenseItem";
 
 const Account = (props) => {
   const auth = getAuth(app);
@@ -112,13 +112,13 @@ const Account = (props) => {
     <View style={styles.container}>
       <View style={styles.cornerTop}>
         <Image
-          source={require("../assets/images/corner.png")}
+          source={require("../../assets/images/corner.png")}
           style={GlobalStyles.corner}
         />
       </View>
       <View style={styles.cornerbottom}>
         <Image
-          source={require("../assets/images/corner.png")}
+          source={require("../../assets/images/corner.png")}
           style={GlobalStyles.corner}
         />
       </View>
