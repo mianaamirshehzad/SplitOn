@@ -21,13 +21,14 @@ import {
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { useFocusEffect } from "@react-navigation/native";
-import app from "../firebase";
-import GlobalStyles from "../styles/GlobalStyles";
-import Spinner from "../components/Spinner";
-import ExpenseItem from "../components/ExpenseItem";
-import { BUTTON_COLOR, Colors } from "../assets/Colours";
+import app from "../../firebase";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { doc, deleteDoc } from "firebase/firestore";
+import GlobalStyles from "../../styles/GlobalStyles";
+import Spinner from "../../components/Spinner";
+import ExpenseItem from "../../components/ExpenseItem";
+import { BUTTON_COLOR, Colors } from "../../assets/Colours";
+
 
 const Home = (props) => {
   const auth = getAuth(app);
@@ -35,10 +36,10 @@ const Home = (props) => {
   const db = getFirestore(app);
 
   const [allExpenses, setAllExpenses] = useState([]);
+  const [filteredExpenses, setFilteredExpenses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filteredExpenses, setFilteredExpenses] = useState([]);
   const [selection, setSelection] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState(null);
 
@@ -67,7 +68,6 @@ const Home = (props) => {
     setRefreshing(true);
     try {
       const q = query(collection(db, "expenses"), orderBy("date", "desc"));
-
       const querySnapshot = await getDocs(q);
       const temp = [];
       querySnapshot.forEach((doc) => {
@@ -79,7 +79,7 @@ const Home = (props) => {
       });
       setAllExpenses(temp);
     } catch (error) {
-      console.log(error);
+      console.log(error.message);
     } finally {
       setRefreshing(false);
       setLoading(false);
@@ -147,13 +147,13 @@ const Home = (props) => {
     <SafeAreaView style={styles.container}>
       <View style={styles.cornerTop}>
         <Image
-          source={require("../assets/images/corner.png")}
+          source={require("../../assets/images/corner.png")}
           style={GlobalStyles.corner}
         />
       </View>
       <View style={styles.cornerbottom}>
         <Image
-          source={require("../assets/images/corner.png")}
+          source={require("../../assets/images/corner.png")}
           style={GlobalStyles.corner}
         />
       </View>
@@ -218,7 +218,7 @@ const Home = (props) => {
               addedBy={item.addedBy}
               description={item.description}
               amount={item.amount}
-              date={item.date}
+              date={item.date.toString()} // React needs to have string representation for date
               onLongPress={() => itemSelector(item)}
               selected={selection}
             />

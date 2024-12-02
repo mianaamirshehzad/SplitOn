@@ -1,16 +1,16 @@
 import { Keyboard, StyleSheet, View, Text } from "react-native";
 import React, { useState, useEffect } from "react";
 import { addDoc, collection, getFirestore } from "firebase/firestore";
-import app from "../firebase";
-import GlobalStyles from "../styles/GlobalStyles";
-import CustomButton from "../components/CustomButton";
-import CustomInput from "../components/CustomInput";
-import { getAuth } from "@firebase/auth";
-import Corner from "../components/Corner";
-import { Strings } from "../assets/constants/strings";
-import Spinner from "../components/Spinner";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Colors } from "../assets/Colours";
+import { getAuth } from "@firebase/auth";
+import app from "../../firebase/index";
+import GlobalStyles from "../../styles/GlobalStyles";
+import CustomButton from "../../components/CustomButton";
+import CustomInput from "../../components/CustomInput";
+import Corner from "../../components/Corner";
+import { Strings } from "../../assets/constants/strings";
+import Spinner from "../../components/Spinner";
+import { Colors } from "../../assets/Colours";
 
 const AddAmount = (props) => {
   const auth = getAuth(app);

@@ -5,7 +5,7 @@ import { Screens } from "../assets/constants/screens";
 
 const Stack = createNativeStackNavigator();
 
-const AuthenticationStack = () => {
+export const AuthenticationStack = () => {
   return (
     <Stack.Navigator>
       <Stack.Screen
@@ -27,4 +27,24 @@ const AuthenticationStack = () => {
   );
 };
 
-export default AuthenticationStack;
+ export const GroupsStack = () => {
+  return (
+    <Stack.Navigator
+    >
+      <Stack.Screen
+        name={Strings.GROUPS}
+        component={Screens.GROUPS_SCREEN}
+        options={{ headerShown: false }}
+
+      />
+      <Stack.Screen
+        name={Strings.GROUP_DETAILS}
+        component={Screens.GROUP_DETAILS}
+        options={({ route }) => ({
+          tabBarStyle: { display: 'none' }, // Hide bottom tab bar on GroupDetails screen
+          headerShown: true, // Show header for GroupDetails
+        })}
+      />
+    </Stack.Navigator>
+  );
+};

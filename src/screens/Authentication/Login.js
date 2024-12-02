@@ -7,12 +7,12 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import GlobalStyles from "../styles/GlobalStyles";
-import CustomButton from "../components/CustomButton";
-import CustomInput from "../components/CustomInput";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-import app from "../firebase";
-import Spinner from "../components/Spinner";
+import app from "../../firebase";
+import Spinner from "../../components/Spinner";
+import CustomButton from "../../components/CustomButton";
+import CustomInput from "../../components/CustomInput";
+import GlobalStyles from "../../styles/GlobalStyles";
 
 const Login = (props) => {
   const auth = getAuth(app);
@@ -63,12 +63,12 @@ const Login = (props) => {
       </View>
       <View style={styles.cornerbottom}>
         <Image
-          source={require("../assets/images/corner.png")}
+          source={require("../../assets/images/corner.png")}
           style={GlobalStyles.corner}
         />
       </View>
       <Image
-        source={require("../assets/images/login.jpg")}
+        source={require("../../assets/images/login.jpg")}
         style={GlobalStyles.image}
       />
       {/* <View  style={styles.container} > */}

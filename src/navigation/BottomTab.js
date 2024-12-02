@@ -4,12 +4,14 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Colors } from "../assets/Colours";
 import { Strings } from "../assets/constants/strings";
 import { Screens } from "../assets/constants/screens";
+import { GroupsStack } from "../navigation/index";
 
 const Tab = createBottomTabNavigator();
 
 function BottomTab() {
   return (
     <Tab.Navigator
+      initialRouteName="Groups"
       screenOptions={{
         tabBarHideOnKeyboard: true,
       }}
@@ -36,6 +38,20 @@ function BottomTab() {
           tabBarIcon: ({ focused, color, size }) => (
             <MaterialCommunityIcons
               name="plus"
+              color={focused ? Colors.BUTTON_COLOR : Colors.BRIGHT}
+              size={size}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name={Strings.GROUPS}
+        component={Screens.GROUPS_STACK}
+        options={{
+          headerShown: false,
+          tabBarIcon: ({ focused, color, size }) => (
+            <MaterialCommunityIcons
+              name="account-group"
               color={focused ? Colors.BUTTON_COLOR : Colors.BRIGHT}
               size={size}
             />
