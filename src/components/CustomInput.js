@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   Image,
 } from "react-native";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
+// import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { BUTTON_COLOR } from "../assets/Colours";
 import { Colors } from "react-native/Libraries/NewAppScreen";
 import { Images } from "../assets/constants/images";
@@ -66,14 +66,7 @@ export default function CustomInput(props) {
           />
         )}
       </View>
-      {props.showDatePicker && (
-        <DateTimePickerModal
-          isVisible={isDatePickerVisible}
-          mode="date"
-          onConfirm={handleDateConfirm}
-          onCancel={hideDatePicker}
-        />
-      )}
+      
     </View>
   );
 }
@@ -102,7 +95,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     borderColor: BUTTON_COLOR,
-    borderWidth: 2,
+    borderWidth: 0.5,
     borderRadius: 10,
     height: 50,
     padding: 15,
@@ -121,3 +114,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 });
+
+
+// {props.showDatePicker && (
+//   <DateTimePickerModal
+//     isVisible={isDatePickerVisible}
+//     mode="date"
+//     onConfirm={handleDateConfirm}
+//     onCancel={hideDatePicker}
+//   />
+// )}
