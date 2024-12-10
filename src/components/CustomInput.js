@@ -8,6 +8,7 @@ import {
   Image,
 } from "react-native";
 // import DateTimePickerModal from "react-native-modal-datetime-picker";
+import DateTimePicker from "react-native-ui-datepicker";
 import { BUTTON_COLOR } from "../assets/Colours";
 import { Colors } from "react-native/Libraries/NewAppScreen";
 import { Images } from "../assets/constants/images";
@@ -17,9 +18,9 @@ export default function CustomInput(props) {
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [date, setDate] = useState();
 
-  const showDatePicker = () => {
-    setDatePickerVisibility(true);
-  };
+  // const showDatePicker = () => {
+  //   setDatePickerVisibility(!isDatePickerVisible);
+  // };
 
   const hideDatePicker = () => {
     setDatePickerVisibility(false);
@@ -31,7 +32,6 @@ export default function CustomInput(props) {
     setDate(date.toDateString());
   };
 
-  // console.log(date);
   return (
     <View style={styles.container}>
       {props.showTitle && (
@@ -46,7 +46,7 @@ export default function CustomInput(props) {
               <Text>{date}</Text>
             </View>
             <TouchableOpacity
-              onPress={showDatePicker}
+              onPress={props.showDatePicker}
               style={styles.calendarButton}
             >
               <Image
@@ -66,7 +66,15 @@ export default function CustomInput(props) {
           />
         )}
       </View>
-      
+      {isDatePickerVisible && (
+        <View style={styles.dataContainer}>
+          <DateTimePicker
+            mode="single"
+            date={date}
+            // onChange={(params) => setDate(params.date)}
+          />
+        </View>
+      )}
     </View>
   );
 }
@@ -75,6 +83,24 @@ const styles = StyleSheet.create({
   container: {
     width: "90%",
     padding: 5,
+    alignSelf: "center",
+  },
+  dataContainer: {
+    position: "absolute",
+    top: "100%", // Position the calendar below the input field
+    left: 0,
+    right: 0,
+    backgroundColor: "#FFFFFF", // Background to make it visually separate
+    zIndex: 1,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: BUTTON_COLOR,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5, // For Android shadow
+    padding: 10,
   },
   textContainer: {
     paddingLeft: 5,
@@ -114,7 +140,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 });
-
 
 // {props.showDatePicker && (
 //   <DateTimePickerModal

@@ -1,22 +1,46 @@
-import React, { useCallback, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Keyboard, TouchableOpacity, Share, FlatList, Alert, TextInput, RefreshControl, Image, Switch } from 'react-native';
+import React, { useCallback, useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Keyboard,
+  TouchableOpacity,
+  Share,
+  FlatList,
+  Alert,
+  TextInput,
+  RefreshControl,
+  Image,
+  Switch,
+} from "react-native";
 // import firestore from '@react-native-firebase/firestore';
-import * as Sharing from 'expo-sharing';
-import Checkbox from 'expo-checkbox';
+import * as Sharing from "expo-sharing";
+import Checkbox from "expo-checkbox";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { MaterialIcons } from "@expo/vector-icons";
-import { Colors } from '../../assets/Colours';
-import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
-import ExpenseItem from '../../components/ExpenseItem';
-import { collection, getDocs, getFirestore, orderBy, query, doc, deleteDoc, addDoc, Firestore, where } from '@firebase/firestore';
-import app from '../../firebase';
-import { getAuth } from 'firebase/auth';
-import ExpenseModal from '../../components/ExpenseModal';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Screens } from '../../assets/constants/screens';
-import ExpenseCalculatorModal from '../../components/ExpenseCalculatorModal';
-import Login from '../Authentication/Login';
+import { Colors } from "../../assets/Colours";
+import { useNavigation } from "@react-navigation/native";
+import { Ionicons } from "@expo/vector-icons";
+import ExpenseItem from "../../components/ExpenseItem";
+import {
+  collection,
+  getDocs,
+  getFirestore,
+  orderBy,
+  query,
+  doc,
+  deleteDoc,
+  addDoc,
+  Firestore,
+  where,
+} from "firebase/firestore";
+import app from "../../firebase";
+import { getAuth } from "firebase/auth";
+import ExpenseModal from "../../components/ExpenseModal";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Screens } from "../../assets/constants/screens";
+import ExpenseCalculatorModal from "../../components/ExpenseCalculatorModal";
+import Login from "../Authentication/Login";
 
 const GroupDetails = ({ route }) => {
   const { groupData, title } = route.params || {};
@@ -39,17 +63,20 @@ const GroupDetails = ({ route }) => {
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
-  const [currentGroupId, setCurrentGroupId] = useState(id)
+  const [currentGroupId, setCurrentGroupId] = useState(id);
   const [showModal, setShowModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [totalAmount, setTotalAmount] = useState(0);
   const [isEnabled, setIsEnabled] = useState(false);
 
-
   const getUserExpenses = async () => {
     setRefreshing(true);
     try {
-      const q = query(collection(db, "expenses"), where("groupId", "==", currentGroupId));
+      const q = query(
+        collection(db, "expenses"),
+        where("groupId", "==", currentGroupId),
+        
+      );
       const querySnapshot = await getDocs(q);
       const temp = [];
       querySnapshot.forEach((doc) => {
@@ -59,6 +86,7 @@ const GroupDetails = ({ route }) => {
         console.log(" => ", merge);
         temp.push(merge);
       });
+
       setAllExpenses(temp);
       calculateTotal();
     } catch (error) {
@@ -74,10 +102,9 @@ const GroupDetails = ({ route }) => {
       let total = 0;
       allExpenses?.forEach((value) => {
         total += Number(value.amount);
-      })
+      });
       setTotalAmount(total);
     }, 3000);
-
   };
 
   const generateInviteLink = async () => {
@@ -88,18 +115,18 @@ const GroupDetails = ({ route }) => {
       const result = await Share.share({
         message: `Join our group using this link: ${inviteLink}`,
       });
-  
+
       if (result.action === Share.sharedAction) {
         if (result.activityType) {
-          console.log('Shared with activity type:', result.activityType);
+          console.log("Shared with activity type:", result.activityType);
         } else {
-          console.log('Link shared successfully!');
+          console.log("Link shared successfully!");
         }
       } else if (result.action === Share.dismissedAction) {
-        console.log('Share dismissed.');
+        console.log("Share dismissed.");
       }
     } catch (error) {
-      console.error('Error sharing invite link:', error.message);
+      console.error("Error sharing invite link:", error.message);
     }
   };
 
@@ -130,7 +157,6 @@ const GroupDetails = ({ route }) => {
           onPress: () => console.log("Cancel Pressed"),
           style: "cancel",
         },
-
       ],
       {
         cancelable: true,
@@ -144,7 +170,7 @@ const GroupDetails = ({ route }) => {
 
   const toggleSwitch = () => {
     setIsEnabled(!isEnabled);
-  }
+  };
 
   const expenseDeletor = async (item) => {
     setSelection(false);
@@ -175,7 +201,6 @@ const GroupDetails = ({ route }) => {
     setFilteredExpenses(filteredData);
   };
 
-
   // useFocusEffect(
   //   useCallback(() => {
   //     getUserExpenses();
@@ -183,27 +208,29 @@ const GroupDetails = ({ route }) => {
   // );
   useEffect(() => {
     getUserExpenses();
-    // calculateTotal();
 
+    // calculateTotal();
   }, []);
 
   useEffect(() => {
     if (groupData) {
       navigation.setOptions({
         headerTitle: () => (
-          <View style={styles.header} >
+          <View style={styles.header}>
             <Text style={styles.headerTitle}>{groupData.groupName}</Text>
-            <Text style={styles.headerSubtitle}>{groupData.groupDescription}</Text>
+            <Text style={styles.headerSubtitle}>
+              {groupData.groupDescription}
+            </Text>
           </View>
         ),
         headerRight: () => (
-          <TouchableOpacity >
+          <TouchableOpacity>
             <Ionicons name="settings-outline" size={24} color="white" />
           </TouchableOpacity>
         ),
         headerStyle: {
           backgroundColor: Colors.BUTTON_COLOR,
-          height: 100
+          height: 100,
         },
       });
     }
@@ -213,22 +240,20 @@ const GroupDetails = ({ route }) => {
     if (title) {
       navigation.setOptions({ title });
     }
-  }, [title])
-
-  console.log("modal ", showCalculateModal);
-
+  }, [title]);
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerContainer} >
-        <View style={styles.imageContainer} >
-          <Image source={{
-            uri: groupImage
-          }}
+      <View style={styles.headerContainer}>
+        <View style={styles.imageContainer}>
+          <Image
+            source={{
+              uri: groupImage,
+            }}
             style={styles.image}
           />
         </View>
-        <View style={{ flexDirection: 'row', gap: 25 }} >
+        <View style={{ flexDirection: "row", gap: 25 }}>
           <TouchableOpacity>
             <MaterialCommunityIcons
               name="pencil"
@@ -272,17 +297,19 @@ const GroupDetails = ({ route }) => {
       ) : (
         <View style={styles.titleContainer}>
           <Text style={styles.title}>Summary </Text>
-          <View style={[styles.inputWrapper, { justifyContent: 'space-between' }]} >
-            <Text style={styles.subtitle}>Rs.{totalAmount} are spent in {groupName}</Text>
-            <View style={styles.toggle} >
-              <TouchableOpacity onPress={() => setShowCalculateModal(true)} >
-                <Text>
-                  Split
-                </Text>
+          <View
+            style={[styles.inputWrapper, { justifyContent: "space-between" }]}
+          >
+            <Text style={styles.subtitle}>
+              Rs.{totalAmount} are spent in {groupName}
+            </Text>
+            <View style={styles.toggle}>
+              <TouchableOpacity onPress={() => setShowCalculateModal(true)}>
+                <Text>Split</Text>
               </TouchableOpacity>
               <Switch
-                trackColor={{ false: '#767577', true: '#81b0ff' }}
-                thumbColor={isEnabled ? '#f5dd4b' : '#f4f3f4'}
+                trackColor={{ false: "#767577", true: "#81b0ff" }}
+                thumbColor={isEnabled ? "#f5dd4b" : "#f4f3f4"}
                 ios_backgroundColor="#3e3e3e"
                 onValueChange={toggleSwitch}
                 value={isEnabled}
@@ -361,24 +388,24 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.BACKGROUND_COLOR,
   },
   headerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginHorizontal: 10,
-    marginVertical: 10
+    marginVertical: 10,
   },
   imageContainer: {
     // backgroundColor: 'pink'
   },
   image: { width: 70, height: 70, borderRadius: 50 },
   header: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: Colors.WHITE
+    color: Colors.WHITE,
   },
   headerSubtitle: {
     fontSize: 14,
@@ -389,14 +416,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 10,
     paddingHorizontal: 10,
-
   },
   toggle: {
-    alignItems: 'center',
-    paddingHorizontal: 10
+    alignItems: "center",
+    paddingHorizontal: 10,
   },
   subtitle: {
     color: Colors.BLACK,
@@ -409,7 +435,7 @@ const styles = StyleSheet.create({
   },
   date: {
     fontSize: 14,
-    color: 'gray',
+    color: "gray",
   },
   selectionContainer: {
     width: "95%",

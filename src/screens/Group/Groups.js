@@ -15,7 +15,6 @@ import Corner from "../../components/Corner";
 import { Colors } from "../../assets/Colours";
 import GroupModal from "../../components/GroupModal";
 import Group from "../../components/Group";
-import { Screens } from "../../assets/constants/screens";
 
 const Groups = () => {
   const auth = getAuth(app);
@@ -42,7 +41,6 @@ const Groups = () => {
     setGroups(groupsData);
   };
 
-  console.log("groups ", groups);
   
 
   useEffect(() => {

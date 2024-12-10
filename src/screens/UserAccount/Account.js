@@ -123,9 +123,8 @@ const Account = (props) => {
         />
       </View>
       <View style={styles.titleContainer}>
-        <Text style={GlobalStyles.title}>My Expenses</Text>
+        <Text style={GlobalStyles.title}>My Account</Text>
       </View>
-      <Spinner animating={loading} />
       <View style={styles.container}>
         <ScrollView
           refreshControl={
@@ -153,7 +152,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.BACKGROUND_COLOR,
   },
   titleContainer: {
-    paddingTop: 25,
+    paddingTop: 45,
+    paddingHorizontal: 15
   },
   header: {
     flexDirection: "row",

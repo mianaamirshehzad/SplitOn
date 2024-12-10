@@ -16,7 +16,7 @@ function BottomTab() {
         tabBarHideOnKeyboard: true,
       }}
     >
-      <Tab.Screen
+      {/* <Tab.Screen
         name={Strings.HOME}
         component={Screens.HOME_SCREEN}
         options={{
@@ -43,7 +43,7 @@ function BottomTab() {
             />
           ),
         }}
-      />
+      /> */}
       <Tab.Screen
         name={Strings.GROUPS}
         component={Screens.GROUPS_STACK}

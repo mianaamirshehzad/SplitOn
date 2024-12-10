@@ -3,17 +3,7 @@ import { View, Text, StyleSheet, Keyboard, TouchableOpacity, FlatList, Alert, Te
 // import firestore from '@react-native-firebase/firestore';
 import Checkbox from 'expo-checkbox';
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { MaterialIcons } from "@expo/vector-icons";
 import { Colors } from '../../assets/Colours';
-import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
-import ExpenseItem from '../../components/ExpenseItem';
-import { collection, getDocs, getFirestore, orderBy, query, doc, deleteDoc, addDoc, Firestore, where } from '@firebase/firestore';
-import app from '../../firebase';
-import { getAuth } from 'firebase/auth';
-import ExpenseModal from '../../components/ExpenseModal';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Screens } from '../../assets/constants/screens';
 
 const SplitGroupExpense = ({ route }) => {
   // const { groupData, title } = route.params || {};
@@ -195,7 +185,7 @@ const SplitGroupExpense = ({ route }) => {
   // }, [title])
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container}  >
       <View style={styles.headerContainer} >
         <View style={styles.imageContainer} >
           {/* <Image source={{

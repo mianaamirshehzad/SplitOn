@@ -30,6 +30,7 @@
     "react-native": "0.71.14",
     "react-native-safe-area-context": "^5.0.0",
     "react-native-screens": "^4.3.0",
+    "react-native-ui-datepicker": "^2.0.4",
     "react-native-web": "~0.18.10",
     "yarn": "^1.22.22"
   },
