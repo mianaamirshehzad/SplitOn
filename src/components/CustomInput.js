@@ -7,31 +7,13 @@ import {
   TouchableOpacity,
   Image,
 } from "react-native";
-// import DateTimePickerModal from "react-native-modal-datetime-picker";
-import DateTimePicker from "react-native-ui-datepicker";
 import { BUTTON_COLOR } from "../assets/Colours";
 import { Colors } from "react-native/Libraries/NewAppScreen";
 import { Images } from "../assets/constants/images";
-import GlobalStyles from "../styles/GlobalStyles";
+import { json } from "body-parser";
 
 export default function CustomInput(props) {
-  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  const [date, setDate] = useState();
-
-  // const showDatePicker = () => {
-  //   setDatePickerVisibility(!isDatePickerVisible);
-  // };
-
-  const hideDatePicker = () => {
-    setDatePickerVisibility(false);
-  };
-
-  const handleDateConfirm = (date) => {
-    hideDatePicker();
-    props.onDateSelected(date);
-    setDate(date.toDateString());
-  };
-
+  
   return (
     <View style={styles.container}>
       {props.showTitle && (
@@ -43,7 +25,7 @@ export default function CustomInput(props) {
         {props.showDatePicker ? (
           <View style={[styles.dateContainer, styles.input, { padding: 0 }]}>
             <View style={styles.date}>
-              <Text>{date}</Text>
+              <Text>{props.date}</Text>
             </View>
             <TouchableOpacity
               onPress={props.showDatePicker}
@@ -66,15 +48,7 @@ export default function CustomInput(props) {
           />
         )}
       </View>
-      {isDatePickerVisible && (
-        <View style={styles.dataContainer}>
-          <DateTimePicker
-            mode="single"
-            date={date}
-            // onChange={(params) => setDate(params.date)}
-          />
-        </View>
-      )}
+     
     </View>
   );
 }
@@ -140,12 +114,3 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 });
-
-// {props.showDatePicker && (
-//   <DateTimePickerModal
-//     isVisible={isDatePickerVisible}
-//     mode="date"
-//     onConfirm={handleDateConfirm}
-//     onCancel={hideDatePicker}
-//   />
-// )}

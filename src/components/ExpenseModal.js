@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { addDoc, collection, getFirestore } from "@firebase/firestore";
 import DateTimePicker from "react-native-ui-datepicker";
+import dayjs from 'dayjs';
 import { MaterialIcons } from "@expo/vector-icons";
 import { Colors } from "../assets/Colours";
 import { Strings } from "../assets/constants/strings";
@@ -33,7 +34,8 @@ const ExpenseModal = ({ isVisible, onClose, fetchLatestData, id }) => {
   const [loading, setLoading] = useState(false);
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
-  const [date, setDate] = useState("");
+  const [date, setDate] = useState(dayjs());
+
   const [groupId, setGroupId] = useState(id);
 
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
@@ -41,8 +43,9 @@ const ExpenseModal = ({ isVisible, onClose, fetchLatestData, id }) => {
   const showDatePicker = () => {
     setDatePickerVisibility(!isDatePickerVisible);
   };
-  console.log("isDatePickerVisible ", isDatePickerVisible);
 
+  console.log(`data ${date.format("DD-MM-YYYY")}`);
+  
   const openModal = () => {
     Animated.timing(modalAnimation, {
       toValue: 1,
@@ -119,12 +122,22 @@ const ExpenseModal = ({ isVisible, onClose, fetchLatestData, id }) => {
             <View style={styles.dataContainer}>
               <DateTimePicker
                 mode="single"
-                // date={date}
-                // onChange={(params) => setDate(params.date)}
+                date={date.toDate()} 
+                onChange={(params) => {
+                    setDate(dayjs(params.date));
+                    setDatePickerVisibility(false);
+                }}
+                selectedItemColor ={Colors.BLACK}
+                headerButtonColor = { Colors.RED}
               />
+              <TouchableOpacity onPress={showDatePicker} >
+                <Text style = {styles.cancelText} >
+                    Cancel
+                </Text>
+              </TouchableOpacity>
             </View>
           ) : (
-            <View>
+            <>
               <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
                 <MaterialIcons name="close" size={25} color={Colors.WHITE} />
               </TouchableOpacity>
@@ -152,10 +165,9 @@ const ExpenseModal = ({ isVisible, onClose, fetchLatestData, id }) => {
               />
               <CustomInput
                 showTitle={true}
-                value={date}
+                value={date.format("DD-MM-YYYY")}
                 title="Date"
                 showDatePicker={showDatePicker}
-                // onDateSelected={(date) => setDate(date.toDateString())}
               />
 
               {loading ? (
@@ -166,10 +178,8 @@ const ExpenseModal = ({ isVisible, onClose, fetchLatestData, id }) => {
                   onPress={addExpenseToAccount}
                 />
               )}
-            </View>
+            </>
           )}
-
-          {/* <Button title="Add Expense" onPress={onAddExpense} /> */}
         </View>
       </Animated.View>
     </Modal>
@@ -201,6 +211,26 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#333",
   },
+  dataContainer: {
+    left: 0,
+    right: 0,
+    backgroundColor: Colors.BACKGROUND_COLOR, 
+    zIndex: 1,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.BUTTON_COLOR,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5, // For Android shadow
+    padding: 10,
+    margin: 10
+  },
+  cancelText : {
+    color: Colors.Button,
+    fontWeight: '600'
+  }, 
   subtitle: {
     fontSize: 16,
     color: "#555",
