@@ -7,10 +7,8 @@ import {
   TouchableOpacity,
   Image,
 } from "react-native";
-import { BUTTON_COLOR } from "../assets/Colours";
-import { Colors } from "react-native/Libraries/NewAppScreen";
+import { BUTTON_COLOR, Colors } from "../assets/Colours";
 import { Images } from "../assets/constants/images";
-import { json } from "body-parser";
 
 export default function CustomInput(props) {
   

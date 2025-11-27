@@ -1,8 +1,7 @@
-
 import { StyleSheet } from "react-native";
 import { BACKGROUND_COLOR, BUTTON_COLOR, Colors } from "../assets/Colours";
 
-export default styles = StyleSheet.create({
+const styles = StyleSheet.create({
   globalContainer: {
     flex: 1,
     justifyContent: "center",
@@ -28,3 +27,5 @@ export default styles = StyleSheet.create({
     height: 150,
   },
 });
+
+export default styles;
