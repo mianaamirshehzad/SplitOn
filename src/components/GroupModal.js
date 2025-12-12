@@ -16,7 +16,7 @@ import app from "../firebase";
 import GlobalStyles from "../styles/GlobalStyles";
 import CustomButton from "../components/CustomButton";
 import CustomInput from "../components/CustomInput";
-import { getAuth } from "@firebase/auth";
+import { getAuth } from "firebase/auth";
 import Corner from "../components/Corner";
 import { Strings } from "../assets/constants/strings";
 import Spinner from "../components/Spinner";
@@ -97,7 +97,6 @@ const GroupModal = ({ visible, onClose }) => {
       console.error("Error creating group: ", error);
     } finally {
       setLoading(false);
-      refetchData();
       onClose();
     }
   };

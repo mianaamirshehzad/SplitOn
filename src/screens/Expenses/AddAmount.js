@@ -1,7 +1,7 @@
 import { Keyboard, StyleSheet, View, Text } from "react-native";
 import React, { useState, useEffect } from "react";
 import { addDoc, collection, getFirestore } from "firebase/firestore";
-import { getAuth } from "@firebase/auth";
+import { getAuth } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import GlobalStyles from "../../styles/GlobalStyles";
 import CustomButton from "../../components/CustomButton";

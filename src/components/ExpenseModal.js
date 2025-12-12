@@ -11,7 +11,7 @@ import {
   Dimensions,
   Button,
 } from "react-native";
-import { addDoc, collection, getFirestore } from "@firebase/firestore";
+import { addDoc, collection, getFirestore } from "firebase/firestore";
 import DateTimePicker from "react-native-ui-datepicker";
 import dayjs from 'dayjs';
 import { MaterialIcons } from "@expo/vector-icons";

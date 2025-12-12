@@ -10,7 +10,6 @@ import {
 import { BUTTON_COLOR } from "../assets/Colours";
 import { Colors } from "react-native/Libraries/NewAppScreen";
 import { Images } from "../assets/constants/images";
-import { json } from "body-parser";
 
 export default function CustomInput(props) {
   

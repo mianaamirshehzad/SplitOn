@@ -10,7 +10,7 @@ import { collection, getDocs, getFirestore } from "firebase/firestore";
 import app from "../../firebase";
 import { useNavigation } from "@react-navigation/native";
 import CustomButton from "../../components/CustomButton";
-import { getAuth } from "@firebase/auth";
+import { getAuth } from "firebase/auth";
 import Corner from "../../components/Corner";
 import { Colors } from "../../assets/Colours";
 import GroupModal from "../../components/GroupModal";
