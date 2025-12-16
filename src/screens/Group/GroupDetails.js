@@ -169,14 +169,9 @@ const GroupDetails = ({ route }) => {
   };
 
   const toggleSwitch = (value) => {
+    // Open/close the calculator modal based on switch state
     setIsEnabled(value);
-    // Navigate to SplitGroupExpense when toggle is turned on
-    if (value) {
-      navigation.navigate('SplitGroupExpense', {
-        groupData,
-        title: groupName
-      });
-    }
+    setShowCalculateModal(value);
   };
 
   const expenseDeletor = async (item) => {
@@ -372,9 +367,13 @@ const GroupDetails = ({ route }) => {
 
       <ExpenseCalculatorModal
         isVisible={showCalculateModal}
-        onClose={() => setShowCalculateModal(false)}
-        expenses={allExpenses}
-        groupMembers={members.length}
+        onClose={() => {
+          setShowCalculateModal(false);
+          setIsEnabled(false);
+        }}
+        totalAmount={totalAmount}
+        forLabel={groupDescription || groupName}
+        members={members}
       />
 
       {/* Floating Plus Icon */}

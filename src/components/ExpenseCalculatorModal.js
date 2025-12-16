@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Modal,
   View,
@@ -13,9 +13,23 @@ import { Colors } from "../assets/Colours";
 
 const { height } = Dimensions.get("window");
 
-const ExpenseCalculatorModal = ({ isVisible, onClose, expenses, groupMembers }) => {
-  const modalAnimation = new Animated.Value(0);
+/**
+ * Full-screen expense split modal
+ * - Dark background, inspired by reference design
+ * - Shows total amount and "For: ..." from props
+ * - Even / Uneven split toggle (UI only for now)
+ * - Lists members with equal share
+ */
+const ExpenseCalculatorModal = ({
+  isVisible,
+  onClose,
+  totalAmount = 0,
+  forLabel = "",
+  members = [],
+}) => {
+  const modalAnimation = useRef(new Animated.Value(0)).current;
 
+  const [splitMode, setSplitMode] = useState("even"); // "even" | "uneven"
   const [totalExpense, setTotalExpense] = useState(0);
   const [sharePerMember, setSharePerMember] = useState(0);
 
@@ -24,21 +38,22 @@ const ExpenseCalculatorModal = ({ isVisible, onClose, expenses, groupMembers }) 
     if (isVisible) {
       openModal();
 
-      const total = expenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
-      const share = groupMembers > 0 ? total / groupMembers : 0;
-
-      console.log("total ", total);
-      
+      const total = Number(totalAmount) || 0;
+      const memberCount = Array.isArray(members) ? members.length : 0;
+      const share = memberCount > 0 ? total / memberCount : 0;
 
       setTotalExpense(total);
       setSharePerMember(share);
+    } else {
+      // Reset animation when not visible
+      modalAnimation.setValue(0);
     }
-  }, [isVisible, expenses, groupMembers]);
+  }, [isVisible, totalAmount, members, modalAnimation]);
 
   const openModal = () => {
     Animated.timing(modalAnimation, {
       toValue: 1,
-      duration: 500,
+      duration: 250,
       useNativeDriver: true,
     }).start();
   };
@@ -46,38 +61,124 @@ const ExpenseCalculatorModal = ({ isVisible, onClose, expenses, groupMembers }) 
   const closeModal = () => {
     Animated.timing(modalAnimation, {
       toValue: 0,
-      duration: 400,
+      duration: 200,
       useNativeDriver: true,
-    }).start();
-    setTimeout(() => onClose(), 300);
+    }).start(() => {
+      onClose && onClose();
+    });
   };
+
+  const formattedTotal = `Rs. ${totalExpense.toFixed(2)}`;
 
   return (
     <Modal transparent visible={isVisible} animationType="fade">
       <Animated.View
-        style={[styles.modalContainer, { opacity: modalAnimation }]}
+        style={[
+          styles.modalContainer,
+          {
+            opacity: modalAnimation,
+          },
+        ]}
       >
         <View style={styles.modalContent}>
+          {/* Top close button */}
           <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
-            <MaterialIcons name="close" size={25} color={Colors.WHITE} />
+            <MaterialIcons name="close" size={22} color={Colors.WHITE} />
           </TouchableOpacity>
 
-          <View style={styles.titleContainer}>
-            <Text style={styles.title}>Expense Summary</Text>
+          {/* Header total section */}
+          <View style={styles.headerSection}>
+            <Text style={styles.headerTitle}>Split with group</Text>
+            <Text style={styles.amountText}>{formattedTotal}</Text>
+            {!!forLabel && (
+              <Text style={styles.forText}>For: {forLabel}</Text>
+            )}
           </View>
 
-          <View style={styles.summaryContainer}>
-            <Text style={styles.summaryText}>
-              Total Expense: <Text style={styles.highlight}>Rs. {totalExpense}</Text>
+          {/* Body section */}
+          <View style={styles.bodySection}>
+            {/* Split mode toggle */}
+            <Text style={styles.sectionLabel}>Set share amounts</Text>
+            <View style={styles.segmentContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.segmentButton,
+                  splitMode === "even" && styles.segmentButtonActive,
+                ]}
+                onPress={() => setSplitMode("even")}
+              >
+                <Text
+                  style={[
+                    styles.segmentText,
+                    splitMode === "even" && styles.segmentTextActive,
+                  ]}
+                >
+                  Even split
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.segmentButton,
+                  splitMode === "uneven" && styles.segmentButtonActive,
+                ]}
+                onPress={() => setSplitMode("uneven")}
+              >
+                <Text
+                  style={[
+                    styles.segmentText,
+                    splitMode === "uneven" && styles.segmentTextActive,
+                  ]}
+                >
+                  Uneven split
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.sectionSubLabel}>
+              Split equally between group
             </Text>
-            <Text style={styles.summaryText}>
-              Number of Members: <Text style={styles.highlight}>{groupMembers}</Text>
-            </Text>
-            <Text style={styles.summaryText}>
-              Share Per Member:{" "}
-              <Text style={styles.highlight}>Rs. {sharePerMember.toFixed(2)}</Text>
-            </Text>
+
+            {/* Members list */}
+            <View style={styles.membersList}>
+              {Array.isArray(members) &&
+                members.map((member, index) => {
+                  const name =
+                    typeof member === "string"
+                      ? member
+                      : member?.name || member?.email || `Member ${index + 1}`;
+                  const initials = name?.charAt(0)?.toUpperCase() || "?";
+
+                  return (
+                    <View key={`${name}-${index}`} style={styles.memberRow}>
+                      <View style={styles.memberInfo}>
+                        <View style={styles.avatar}>
+                          <Text style={styles.avatarText}>{initials}</Text>
+                        </View>
+                        <View>
+                          <Text style={styles.memberName}>{name}</Text>
+                          {index === 0 && (
+                            <Text style={styles.memberRole}>Creator</Text>
+                          )}
+                        </View>
+                      </View>
+
+                      <View style={styles.sharePill}>
+                        <Text style={styles.sharePillText}>
+                          Rs. {sharePerMember.toFixed(2)}
+                        </Text>
+                      </View>
+                    </View>
+                  );
+                })}
+            </View>
           </View>
+
+          {/* Bottom primary button */}
+          <TouchableOpacity style={styles.primaryButton} onPress={closeModal}>
+            <Text style={styles.primaryButtonText}>
+              Split {formattedTotal}
+            </Text>
+          </TouchableOpacity>
         </View>
       </Animated.View>
     </Modal>
@@ -89,17 +190,123 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "lightgrey",
+    backgroundColor: "rgba(0,0,0,0.7)",
     paddingHorizontal: 20,
   },
   modalContent: {
     width: "100%",
-    backgroundColor: "lightgreen",
-    borderRadius: 10,
-    padding: 20,
+    height: height * 0.95,
+    backgroundColor: "#111111",
+    borderRadius: 24,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 24,
+    overflow: "hidden",
+  },
+  headerSection: {
     alignItems: "center",
-    maxHeight: height * 0.5, // Limit modal height
-
+    paddingVertical: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#222222",
+  },
+  headerTitle: {
+    fontSize: 16,
+    color: "#FFFFFF",
+    marginBottom: 8,
+  },
+  amountText: {
+    fontSize: 40,
+    fontWeight: "800",
+    color: "#D0FF5F", // neon-like
+    marginBottom: 4,
+  },
+  forText: {
+    fontSize: 14,
+    color: "#CCCCCC",
+  },
+  bodySection: {
+    flex: 1,
+    paddingTop: 24,
+  },
+  sectionLabel: {
+    fontSize: 14,
+    color: "#AAAAAA",
+    marginBottom: 12,
+  },
+  segmentContainer: {
+    flexDirection: "row",
+    backgroundColor: "#1F1F1F",
+    borderRadius: 999,
+    padding: 4,
+    marginBottom: 12,
+  },
+  segmentButton: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 999,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  segmentButtonActive: {
+    backgroundColor: "#FFFFFF",
+  },
+  segmentText: {
+    fontSize: 13,
+    color: "#888888",
+  },
+  segmentTextActive: {
+    color: "#000000",
+    fontWeight: "600",
+  },
+  sectionSubLabel: {
+    fontSize: 13,
+    color: "#777777",
+    marginBottom: 12,
+  },
+  membersList: {
+    flex: 1,
+  },
+  memberRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 10,
+  },
+  memberInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#2A2A2A",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  avatarText: {
+    color: "#FFFFFF",
+    fontWeight: "600",
+  },
+  memberName: {
+    color: "#FFFFFF",
+    fontSize: 15,
+  },
+  memberRole: {
+    color: "#888888",
+    fontSize: 12,
+  },
+  sharePill: {
+    backgroundColor: "#1F1F1F",
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+  },
+  sharePillText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "500",
   },
   titleContainer: {
     marginBottom: 20,
@@ -112,24 +319,26 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: "absolute",
-    top: 10,
-    right: 10,
-    backgroundColor: Colors.RED,
-    borderRadius: 30,
-    padding: 5,
-  },
-  summaryContainer: {
-    marginTop: 10,
+    top: 8,
+    right: 8,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: "center",
+    justifyContent: "center",
   },
-  summaryText: {
-    fontSize: 18,
-    color: "#555",
-    marginVertical: 5,
+  primaryButton: {
+    marginTop: 12,
+    backgroundColor: "#D0FF5F",
+    borderRadius: 999,
+    paddingVertical: 14,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  highlight: {
-    fontWeight: "bold",
-    color: "#333",
+  primaryButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#000000",
   },
 });
 

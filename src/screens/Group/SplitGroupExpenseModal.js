@@ -6,34 +6,14 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Colors } from '../../assets/Colours';
 
 const SplitGroupExpense = ({ route }) => {
-  // const { groupData, title } = route.params || {};
-  // const { groupName, groupDescription, members, groupImage, id } = groupData;
-  // const navigation = useNavigation();
-  // const auth = getAuth(app);
-  // const user = auth.currentUser;
-  // const db = getFirestore(app);
+  const { groupData, title } = route.params || {};
+  const [isEnabled, setIsEnabled] = useState(false);
 
-  // console.log("group url ", groupData);
-
-
-
-  // const [modalVisible, setModalVisible] = useState(false);
-  // const [allExpenses, setAllExpenses] = useState([]);
-  // const [filteredExpenses, setFilteredExpenses] = useState([]);
-  // const [loading, setLoading] = useState(false);
-  // const [refreshing, setRefreshing] = useState(false);
-  // const [selection, setSelection] = useState(false);
-  // const [selectedExpense, setSelectedExpense] = useState(null);
-  // const userEmail = auth.currentUser ? auth.currentUser.email : null;
-  // const userName = auth.name ? auth.currentUser.displayName : null;
-  // const [amount, setAmount] = useState("");
-  // const [description, setDescription] = useState("");
-  // const [date, setDate] = useState("");
-  // const [currentGroupId, setCurrentGroupId] = useState(id)
-  // const [showModal, setShowModal] = useState(false);
-  // const [searchQuery, setSearchQuery] = useState("");
-  // const [totalAmount, setTotalAmount] = useState(0);
-  // const [isEnabled, setIsEnabled] = useState(false);
+  const toggleSwitch = (value) => {
+    setIsEnabled(value);
+    // Add any logic you want when split toggle is turned on/off
+    console.log('Split toggle:', value);
+  };
 
 
   // const getUserExpenses = async () => {
@@ -241,15 +221,14 @@ const SplitGroupExpense = ({ route }) => {
           <View style={[styles.inputWrapper, { justifyContent: 'space-between' }]} >
             <Text style={styles.subtitle}>Rs. are spent in </Text>
             <View style={styles.toggle} >
-              <TouchableOpacity onPress={() => navigation.navigate(Screens.SPLIT_GROUP_EXPENSE, {
-                groupData,
-                // title: item.groupName
-              })} >
-                <Text>
-                  Split
-                </Text>
-              </TouchableOpacity>
-              
+              <Text style={{ marginRight: 10 }}>Split</Text>
+              <Switch
+                trackColor={{ false: "#767577", true: "#81b0ff" }}
+                thumbColor={isEnabled ? "#f5dd4b" : "#f4f3f4"}
+                ios_backgroundColor="#3e3e3e"
+                onValueChange={toggleSwitch}
+                value={isEnabled}
+              />
             </View>
           </View>
           <View style={styles.searchContainer}>
