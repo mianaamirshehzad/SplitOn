@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, forwardRef } from "react";
 import {
   Text,
   TextInput,
@@ -11,7 +11,7 @@ import { BUTTON_COLOR } from "../assets/Colours";
 import { Colors } from "react-native/Libraries/NewAppScreen";
 import { Images } from "../assets/constants/images";
 
-export default function CustomInput(props) {
+const CustomInput = forwardRef((props, ref) => {
   
   return (
     <View style={styles.container}>
@@ -38,19 +38,25 @@ export default function CustomInput(props) {
           </View>
         ) : (
           <TextInput
+            ref={ref}
             placeholder={props.placeholder}
             style={styles.input}
             secureTextEntry={props.secureTextEntry}
             onChangeText={(t) => props.onChangeText(t)}
             value={props.value}
             keyboardType={props.keyboardType}
+            returnKeyType={props.returnKeyType}
+            onSubmitEditing={props.onSubmitEditing}
+            blurOnSubmit={props.blurOnSubmit}
           />
         )}
       </View>
      
     </View>
   );
-}
+});
+
+export default CustomInput;
 
 const styles = StyleSheet.create({
   container: {

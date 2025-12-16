@@ -49,7 +49,7 @@ const Groups = () => {
 
   return (
     <SafeAreaView style={styles.container} >
-      <View >
+      <View style={styles.contentContainer}>
         <Corner />
         <View style={styles.titleContainer}>
           <Text style={styles.title}>New Group</Text>
@@ -69,13 +69,14 @@ const Groups = () => {
               />
             )
           }
-
           }
+          contentContainerStyle={styles.listContent}
         />
-
-        <CustomButton name={"+"} onPress={() => setShowModal(true)} />
-        <GroupModal visible={showModal} onClose={handleClose} />
       </View>
+      <View style={styles.buttonContainer}>
+        <CustomButton name={"+ New Group"} onPress={() => setShowModal(true)} />
+      </View>
+      <GroupModal visible={showModal} onClose={handleClose} />
     </SafeAreaView>
   );
 };
@@ -83,8 +84,25 @@ const Groups = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // justifyContent: "center",
     backgroundColor: Colors.BACKGROUND_COLOR,
+  },
+  contentContainer: {
+    flex: 1,
+  },
+  listContent: {
+    paddingBottom: 80,
+  },
+  buttonContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    paddingTop: 10,
+    backgroundColor: Colors.BACKGROUND_COLOR,
+    borderTopWidth: 1,
+    borderTopColor: Colors.BACKGROUND_COLOR,
   },
   boldText: {
     fontWeight: "bold",
@@ -96,20 +114,19 @@ const styles = StyleSheet.create({
     marginRight: 40,
   },
   titleContainer: {
-    // paddingTop: 25,
-    alignItems: "center",
+    alignItems: "flex-start",
+    paddingHorizontal: 20,
+    marginTop: 40,
   },
   title: {
     color: Colors.BUTTON_COLOR,
     fontSize: 24,
-    marginTop: 25,
     fontWeight: "bold",
-    paddingHorizontal: 10,
   },
   subtitle: {
     color: Colors.BLACK,
     fontSize: 15,
-    paddingHorizontal: 10,
+    marginVertical: 10,
   },
 });
 

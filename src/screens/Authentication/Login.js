@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   Image,
   Keyboard,
@@ -22,6 +22,9 @@ const Login = (props) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  
+  // Refs for input focus management
+  const passwordInputRef = useRef(null);
 
   const login = async () => {
     try {
@@ -78,13 +81,23 @@ const Login = (props) => {
         placeholder="Email"
         onChangeText={(text) => setEmail(text.toLowerCase())}
         value={email}
-        keyboardType = {"email-address"}
+        keyboardType="email-address"
+        returnKeyType="next"
+        onSubmitEditing={() => passwordInputRef.current?.focus()}
+        blurOnSubmit={false}
       />
       <CustomInput
+        ref={passwordInputRef}
         onChangeText={(text) => setPassword(text)}
         placeholder="Password"
         secureTextEntry={true}
         value={password}
+        returnKeyType="done"
+        onSubmitEditing={() => {
+          Keyboard.dismiss();
+          login();
+        }}
+        blurOnSubmit={true}
       />
       <TouchableOpacity
         style={styles.forgot}

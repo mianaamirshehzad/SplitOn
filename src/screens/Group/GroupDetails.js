@@ -168,8 +168,15 @@ const GroupDetails = ({ route }) => {
     );
   };
 
-  const toggleSwitch = () => {
-    setIsEnabled(!isEnabled);
+  const toggleSwitch = (value) => {
+    setIsEnabled(value);
+    // Navigate to SplitGroupExpense when toggle is turned on
+    if (value) {
+      navigation.navigate('SplitGroupExpense', {
+        groupData,
+        title: groupName
+      });
+    }
   };
 
   const expenseDeletor = async (item) => {
