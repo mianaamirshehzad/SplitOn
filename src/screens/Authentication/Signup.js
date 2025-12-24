@@ -27,15 +27,48 @@ const Signup = (props) => {
 
   const creatingUser = () => {
     try {
-      if (password === confirmPass) {
-        createUserWithEmailAndPassword(auth, email, password)
-          .then((userCredential) => {
-            // Signed in
-            const user = userCredential.user;
-            const userDocRef = addDoc(collection(db, "users"), {
-              name: name,
-              email: email,
-              mobile: mobile
+      // Validate mandatory fields
+      if (!name.trim()) {
+        alert("Name is required");
+        return;
+      }
+
+      if (!email.trim()) {
+        alert("Email is required");
+        return;
+      }
+
+      // Basic email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email.trim())) {
+        alert("Please enter a valid email address");
+        return;
+      }
+
+      if (!password) {
+        alert("Password is required");
+        return;
+      }
+
+      if (password !== confirmPass) {
+        alert("Password mis-match found");
+        return;
+      }
+
+      if (password.length < 6) {
+        alert("Password must be at least 6 characters long");
+        return;
+      }
+
+      createUserWithEmailAndPassword(auth, email.trim(), password)
+        .then(async (userCredential) => {
+          // Signed in
+          const user = userCredential.user;
+          try {
+            const userDocRef = await addDoc(collection(db, "users"), {
+              name: name.trim(),
+              email: email.trim(),
+              mobile: mobile.trim() || ""
             });
 
             console.log(
@@ -45,24 +78,33 @@ const Signup = (props) => {
             const userId = userDocRef.id;
             props.navigation.navigate("Home", { userId });
             console.log("User created");
-          })
-          .catch((error) => {
-            const errorCode = error.code;
-            const errorMessage = error.message;
-            alert(errorMessage);
-            // ..
-          });
-      } else {
-        alert("Password mis-match found");
-      }
+          } catch (firestoreError) {
+            console.error("Error saving user to Firestore:", firestoreError);
+            alert("Account created but failed to save profile. Please update your profile later.");
+            props.navigation.navigate("Home", { userId: user.uid });
+          }
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          console.error("Error creating user:", errorCode, errorMessage);
+          
+          // User-friendly error messages
+          let userFriendlyMessage = errorMessage;
+          if (errorCode === "auth/email-already-in-use") {
+            userFriendlyMessage = "This email is already registered. Please use a different email or login.";
+          } else if (errorCode === "auth/invalid-email") {
+            userFriendlyMessage = "Invalid email address. Please enter a valid email.";
+          } else if (errorCode === "auth/weak-password") {
+            userFriendlyMessage = "Password is too weak. Please use a stronger password.";
+          }
+          
+          alert(userFriendlyMessage);
+        });
     } catch (error) {
-      console.log(error);
+      console.error("Unexpected error:", error);
+      alert("An unexpected error occurred. Please try again.");
     }
-    setConfirmPass(null);
-    setEmail(null);
-    setMobile(null);
-    setName(null);
-    setMobile(null);
   };
 
   return (

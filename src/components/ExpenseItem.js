@@ -1,7 +1,40 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { collection, query, where, getDocs, getFirestore } from "firebase/firestore";
+import app from "../firebase";
 
 const ExpenseItem = ({ addedBy, description, amount, date, onLongPress, id, selected}) => {
+  const [userName, setUserName] = useState(addedBy); // Default to email if name not found
+  const db = getFirestore(app);
+
+  // Fetch user name from Firestore
+  useEffect(() => {
+    const fetchUserName = async () => {
+      if (!addedBy) return;
+      
+      try {
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, where("email", "==", addedBy));
+        const querySnapshot = await getDocs(q);
+        
+        if (!querySnapshot.empty) {
+          const userData = querySnapshot.docs[0].data();
+          const name = userData.name || addedBy;
+          setUserName(name);
+        } else {
+          // If user not found, use email
+          setUserName(addedBy);
+        }
+      } catch (error) {
+        console.error("Error fetching user name:", error);
+        // Fallback to email on error
+        setUserName(addedBy);
+      }
+    };
+
+    fetchUserName();
+  }, [addedBy]);
+
   // Format date and time from Firestore Timestamp or Date object
   const formatDateAndTime = (dateValue) => {
     if (!dateValue) return { date: "No date", time: "" };
@@ -66,7 +99,7 @@ const ExpenseItem = ({ addedBy, description, amount, date, onLongPress, id, sele
           {formattedTime && <Text style={styles.time}>{formattedTime}</Text>}
         </View>
         <Text style={styles.description}>{description}</Text>
-        <Text style={styles.addedBy}>{addedBy}</Text>
+        <Text style={styles.addedBy}>Spent by {userName}</Text>
       </View>
       <View style={styles.rightContainer}>
         <Text style={styles.amount}>{amount}</Text>
