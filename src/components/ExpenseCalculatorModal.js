@@ -10,6 +10,8 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Colors } from "../assets/Colours";
+import { collection, query, where, getDocs, getFirestore } from "firebase/firestore";
+import app from "../firebase";
 
 const { height } = Dimensions.get("window");
 
@@ -28,10 +30,61 @@ const ExpenseCalculatorModal = ({
   members = [],
 }) => {
   const modalAnimation = useRef(new Animated.Value(0)).current;
+  const db = getFirestore(app);
 
   const [splitMode, setSplitMode] = useState("even"); // "even" | "uneven"
   const [totalExpense, setTotalExpense] = useState(0);
   const [sharePerMember, setSharePerMember] = useState(0);
+  const [memberNames, setMemberNames] = useState({}); // Map of email -> name
+
+  // Fetch user names for all members
+  const fetchMemberNames = async (memberEmails) => {
+    if (!Array.isArray(memberEmails) || memberEmails.length === 0) return;
+
+    const namesMap = {};
+    const emailList = memberEmails.map((member) =>
+      typeof member === "string" ? member : member?.email || member
+    );
+
+    try {
+      // Fetch all user names in parallel
+      const promises = emailList.map(async (email) => {
+        if (!email) return;
+        try {
+          const usersRef = collection(db, "users");
+          const q = query(usersRef, where("email", "==", email));
+          const querySnapshot = await getDocs(q);
+
+          if (!querySnapshot.empty) {
+            const userData = querySnapshot.docs[0].data();
+            return { email, name: userData.name || email };
+          } else {
+            return { email, name: email }; // Fallback to email if not found
+          }
+        } catch (error) {
+          console.error(`Error fetching name for ${email}:`, error);
+          return { email, name: email }; // Fallback to email on error
+        }
+      });
+
+      const results = await Promise.all(promises);
+      results.forEach((result) => {
+        if (result) {
+          namesMap[result.email] = result.name;
+        }
+      });
+
+      setMemberNames(namesMap);
+    } catch (error) {
+      console.error("Error fetching member names:", error);
+      // Fallback: use emails as names
+      const fallbackMap = {};
+      emailList.forEach((email) => {
+        if (email) fallbackMap[email] = email;
+      });
+      setMemberNames(fallbackMap);
+    }
+  };
 
   // Calculate total and share per member when the modal opens
   useEffect(() => {
@@ -44,9 +97,13 @@ const ExpenseCalculatorModal = ({
 
       setTotalExpense(total);
       setSharePerMember(share);
+
+      // Fetch member names when modal opens
+      fetchMemberNames(members);
     } else {
       // Reset animation when not visible
       modalAnimation.setValue(0);
+      setMemberNames({});
     }
   }, [isVisible, totalAmount, members, modalAnimation]);
 
@@ -142,14 +199,18 @@ const ExpenseCalculatorModal = ({
             <View style={styles.membersList}>
               {Array.isArray(members) &&
                 members.map((member, index) => {
-                  const name =
+                  // Get email from member (could be string or object)
+                  const email =
                     typeof member === "string"
                       ? member
-                      : member?.name || member?.email || `Member ${index + 1}`;
+                      : member?.email || member;
+                  
+                  // Get name from our fetched names map, fallback to email
+                  const name = memberNames[email] || email || `Member ${index + 1}`;
                   const initials = name?.charAt(0)?.toUpperCase() || "?";
 
                   return (
-                    <View key={`${name}-${index}`} style={styles.memberRow}>
+                    <View key={`${email}-${index}`} style={styles.memberRow}>
                       <View style={styles.memberInfo}>
                         <View style={styles.avatar}>
                           <Text style={styles.avatarText}>{initials}</Text>

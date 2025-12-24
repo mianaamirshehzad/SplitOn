@@ -12,6 +12,7 @@ import {
   RefreshControl,
   Image,
   Switch,
+  Modal,
 } from "react-native";
 // import firestore from '@react-native-firebase/firestore';
 import * as Sharing from "expo-sharing";
@@ -68,6 +69,7 @@ const GroupDetails = ({ route }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [totalAmount, setTotalAmount] = useState(0);
   const [isEnabled, setIsEnabled] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   const getUserExpenses = async () => {
     setRefreshing(true);
@@ -229,7 +231,7 @@ const GroupDetails = ({ route }) => {
           </View>
         ),
         headerRight: () => (
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => setShowSettingsModal(true)}>
             <Ionicons name="settings-outline" size={24} color="white" />
           </TouchableOpacity>
         ),
@@ -249,7 +251,7 @@ const GroupDetails = ({ route }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerContainer}>
+      {/* <View style={styles.headerContainer}>
         <View style={styles.imageContainer}>
           <Image
             source={{
@@ -258,24 +260,7 @@ const GroupDetails = ({ route }) => {
             style={styles.image}
           />
         </View>
-        <View style={{ flexDirection: "row", gap: 25 }}>
-          <TouchableOpacity>
-            <MaterialCommunityIcons
-              name="pencil"
-              size={25}
-              color={Colors.BUTTON_COLOR}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <MaterialCommunityIcons
-              name="account-multiple-plus"
-              size={25}
-              color={Colors.BUTTON_COLOR}
-              onPress={generateInviteLink}
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
+      </View> */}
       {selection ? (
         <View style={styles.selectionContainer}>
           <View style={styles.actionContainer}>
@@ -379,6 +364,58 @@ const GroupDetails = ({ route }) => {
         members={members}
       />
 
+      {/* Settings Modal */}
+      <Modal
+        transparent
+        visible={showSettingsModal}
+        animationType="fade"
+        onRequestClose={() => setShowSettingsModal(false)}
+      >
+        <TouchableOpacity
+          style={styles.settingsModalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowSettingsModal(false)}
+        >
+          <View style={styles.settingsModalContent}>
+            <TouchableOpacity
+              style={styles.settingsOption}
+              onPress={() => {
+                setShowSettingsModal(false);
+                // TODO: Add edit group functionality
+                Alert.alert("Edit Group", "Edit group functionality coming soon");
+              }}
+            >
+              <MaterialCommunityIcons
+                name="pencil"
+                size={24}
+                color={Colors.BUTTON_COLOR}
+              />
+              <Text style={styles.settingsOptionText}>Edit Group</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.settingsOption}
+              onPress={() => {
+                setShowSettingsModal(false);
+                generateInviteLink();
+              }}
+            >
+              <MaterialCommunityIcons
+                name="account-multiple-plus"
+                size={24}
+                color={Colors.BUTTON_COLOR}
+              />
+              <Text style={styles.settingsOptionText}>Add Member</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.settingsOption, styles.settingsOptionCancel]}
+              onPress={() => setShowSettingsModal(false)}
+            >
+              <Text style={styles.settingsOptionCancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
       {/* Floating Plus Icon */}
       <TouchableOpacity
         style={styles.floatingPlusButton}
@@ -421,13 +458,14 @@ const styles = StyleSheet.create({
     color: "black",
   },
   titleContainer: {
-    paddingTop: 15,
+    paddingTop: 0,
   },
   title: {
     fontSize: 20,
     fontWeight: "bold",
     marginBottom: 10,
     paddingHorizontal: 10,
+    marginTop: 10,
   },
   toggle: {
     alignItems: "center",
@@ -507,6 +545,42 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
+  },
+  settingsModalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-end",
+  },
+  settingsModalContent: {
+    backgroundColor: Colors.WHITE,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    paddingBottom: 40,
+  },
+  settingsOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 15,
+    paddingHorizontal: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  settingsOptionText: {
+    fontSize: 16,
+    color: Colors.BLACK,
+    marginLeft: 15,
+  },
+  settingsOptionCancel: {
+    borderBottomWidth: 0,
+    justifyContent: "center",
+    marginTop: 10,
+  },
+  settingsOptionCancelText: {
+    fontSize: 16,
+    color: Colors.RED,
+    fontWeight: "600",
+    textAlign: "center",
   },
 });
 
