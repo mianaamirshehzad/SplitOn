@@ -88,7 +88,7 @@ const GroupDetails = ({ route }) => {
       });
 
       setAllExpenses(temp);
-      calculateTotal();
+      // calculateTotal will be called automatically via useEffect when allExpenses updates
     } catch (error) {
       console.log(error.message);
     } finally {
@@ -98,14 +98,17 @@ const GroupDetails = ({ route }) => {
   };
 
   const calculateTotal = () => {
-    setTimeout(() => {
-      let total = 0;
-      allExpenses?.forEach((value) => {
-        total += Number(value.amount);
-      });
-      setTotalAmount(total);
-    }, 3000);
+    let total = 0;
+    allExpenses?.forEach((value) => {
+      total += Number(value.amount) || 0;
+    });
+    setTotalAmount(total);
   };
+
+  // Recalculate total whenever allExpenses changes
+  useEffect(() => {
+    calculateTotal();
+  }, [allExpenses]);
 
   const generateInviteLink = async () => {
     const inviteLink = `https://spliton.com/join-group/${currentGroupId}`;
@@ -348,7 +351,7 @@ const GroupDetails = ({ route }) => {
             addedBy={item.addedBy}
             description={item.description}
             amount={item.amount}
-            date={item.date.toString()} // React needs to have string representation for date
+            date={item.date}
             onLongPress={() => itemSelector(item)}
             selected={selection}
           />

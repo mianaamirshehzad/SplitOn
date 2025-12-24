@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Modal,
   View,
@@ -12,7 +12,7 @@ import {
   Button,
 } from "react-native";
 import { addDoc, collection, getFirestore } from "firebase/firestore";
-import DateTimePicker from "react-native-ui-datepicker";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import dayjs from 'dayjs';
 import { MaterialIcons } from "@expo/vector-icons";
 import { Colors } from "../assets/Colours";
@@ -26,7 +26,7 @@ import app from "../firebase";
 const { height } = Dimensions.get("window");
 
 const ExpenseModal = ({ isVisible, onClose, fetchLatestData, id }) => {
-  const modalAnimation = new Animated.Value(0);
+  const modalAnimation = useRef(new Animated.Value(0)).current;
   const auth = getAuth(app);
   const userEmail = auth.currentUser ? auth.currentUser.email : null;
   const user = auth.currentUser;
@@ -41,12 +41,15 @@ const ExpenseModal = ({ isVisible, onClose, fetchLatestData, id }) => {
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
   const showDatePicker = () => {
+    // Ensure date has current time if it's invalid or not set
+    if (!date || !date.isValid || !date.isValid()) {
+      setDate(dayjs());
+    }
     setDatePickerVisibility(!isDatePickerVisible);
   };
 
-  console.log(`data ${date.format("DD-MM-YYYY")}`);
-  
   const openModal = () => {
+    modalAnimation.setValue(0); // Reset to 0 before animating
     Animated.timing(modalAnimation, {
       toValue: 1,
       duration: 500,
@@ -67,16 +70,32 @@ const ExpenseModal = ({ isVisible, onClose, fetchLatestData, id }) => {
     try {
       setLoading(true);
       Keyboard.dismiss();
-      if (!amount && !description && !date) {
-        alert("Oops! Fields missing");
+      
+      // Validate required fields
+      if (!amount.trim() || !description.trim() || !date) {
+        alert("Oops! All fields are required");
+        setLoading(false);
         return;
       }
+      
+      // Validate userEmail
+      if (!userEmail) {
+        alert("User not authenticated. Please login again.");
+        setLoading(false);
+        return;
+      }
+      
+      // Convert date to Firestore-compatible format
+      const dateValue = date && typeof date.toDate === 'function' 
+        ? date.toDate() 
+        : (date instanceof Date ? date : new Date());
+      
       const expenseRef = await addDoc(collection(db, "expenses"), {
         amount: amount.trim(),
         description: description.trim(),
-        date: date,
+        date: dateValue,
         addedBy: userEmail.trim(),
-        groupId: groupId,
+        groupId: groupId || null,
       });
       console.log("Expense saved with ID: ", expenseRef.id);
 
@@ -97,42 +116,71 @@ const ExpenseModal = ({ isVisible, onClose, fetchLatestData, id }) => {
       //   console.log("Data saved after uploading: ", savedData);
     } catch (error) {
       const message = error.message;
-      console.log("Error creating expense ", message);
+      console.error("Error creating expense: ", error);
+      alert(`Error creating expense: ${message}`);
+      setLoading(false);
     } finally {
-      setAmount(null);
-      setDescription(null);
-      setDate("");
+      setAmount("");
+      setDescription("");
+      setDate(dayjs());
       setLoading(false);
       onClose();
-      fetchLatestData();
+      if (fetchLatestData && typeof fetchLatestData === 'function') {
+        fetchLatestData();
+      }
     }
   };
 
-  React.useEffect(() => {
-    if (isVisible) openModal();
+  useEffect(() => {
+    if (isVisible) {
+      // Reset date to current date and time when modal opens
+      setDate(dayjs());
+      // Reset form fields when modal opens
+      setAmount("");
+      setDescription("");
+      setDatePickerVisibility(false);
+      // Start animation
+      openModal();
+    } else {
+      // Reset animation when modal closes
+      modalAnimation.setValue(0);
+    }
   }, [isVisible]);
 
   return (
     <Modal transparent visible={isVisible} animationType="fade">
-      <Animated.View
-        style={[styles.modalContainer, { opacity: modalAnimation }]}
-      >
-        <View style={styles.modalContent}>
+      <View style={styles.modalContainer}>
+        <Animated.View
+          style={[styles.modalContent, { opacity: modalAnimation }]}
+        >
           {isDatePickerVisible ? (
             <View style={styles.dataContainer}>
               <DateTimePicker
-                mode="single"
-                date={date.toDate()} 
-                onChange={(params) => {
-                    setDate(dayjs(params.date));
-                    setDatePickerVisibility(false);
+                value={date && typeof date.toDate === 'function' 
+                  ? date.toDate() 
+                  : (date instanceof Date 
+                    ? date 
+                    : (date && date.isValid && date.isValid() 
+                      ? date.toDate() 
+                      : new Date()))}
+                mode="datetime"
+                display="default"
+                onChange={(event, selectedDate) => {
+                  if (event.type === 'set' && selectedDate) {
+                    setDate(dayjs(selectedDate));
+                  } else if (event.type === 'dismissed') {
+                    // If dismissed, keep current date/time
+                    if (!date || !date.isValid || !date.isValid()) {
+                      setDate(dayjs());
+                    }
+                  }
+                  setDatePickerVisibility(false);
                 }}
-                selectedItemColor ={Colors.BLACK}
-                headerButtonColor = { Colors.RED}
+                textColor={Colors.BLACK}
               />
-              <TouchableOpacity onPress={showDatePicker} >
-                <Text style = {styles.cancelText} >
-                    Cancel
+              <TouchableOpacity onPress={showDatePicker} style={styles.cancelButton}>
+                <Text style={styles.cancelText}>
+                  Cancel
                 </Text>
               </TouchableOpacity>
             </View>
@@ -158,6 +206,7 @@ const ExpenseModal = ({ isVisible, onClose, fetchLatestData, id }) => {
               />
               <CustomInput
                 showTitle={true}
+                autoCapitalize="words"
                 title="Description"
                 value={description}
                 placeholder="Expense details..."
@@ -165,8 +214,8 @@ const ExpenseModal = ({ isVisible, onClose, fetchLatestData, id }) => {
               />
               <CustomInput
                 showTitle={true}
-                value={date.format("DD-MM-YYYY")}
-                title="Date"
+                date={date && typeof date.format === 'function' ? date.format("DD-MM-YYYY HH:mm") : ""}
+                title="Date & Time"
                 showDatePicker={showDatePicker}
               />
 
@@ -176,12 +225,13 @@ const ExpenseModal = ({ isVisible, onClose, fetchLatestData, id }) => {
                 <CustomButton
                   name={Strings.ADD_EXPENSE}
                   onPress={addExpenseToAccount}
+                  disabled={!amount.trim() || !description.trim() || !date}
                 />
               )}
             </>
           )}
-        </View>
-      </Animated.View>
+        </Animated.View>
+      </View>
     </Modal>
   );
 };
@@ -227,9 +277,15 @@ const styles = StyleSheet.create({
     padding: 10,
     margin: 10
   },
-  cancelText : {
-    color: Colors.Button,
-    fontWeight: '600'
+  cancelButton: {
+    marginTop: 10,
+    padding: 10,
+    alignItems: 'center',
+  },
+  cancelText: {
+    color: Colors.BUTTON_COLOR,
+    fontWeight: '600',
+    fontSize: 16,
   }, 
   subtitle: {
     fontSize: 16,

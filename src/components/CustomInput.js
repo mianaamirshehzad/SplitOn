@@ -48,6 +48,7 @@ const CustomInput = forwardRef((props, ref) => {
             returnKeyType={props.returnKeyType}
             onSubmitEditing={props.onSubmitEditing}
             blurOnSubmit={props.blurOnSubmit}
+            autoCapitalize={props.autoCapitalize}
           />
         )}
       </View>
