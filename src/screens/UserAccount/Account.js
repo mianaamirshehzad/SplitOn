@@ -20,6 +20,7 @@ import {
   where,
   updateDoc,
   addDoc,
+  or,
 } from "firebase/firestore";
 import { getAuth, signOut } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -152,23 +153,73 @@ const Account = (props) => {
   };
 
   const getMyExpenses = async () => {
+    if (!userEmail) return;
+    
     setRefreshing(true);
     try {
-      const q = query(
+      // Fetch expenses where user added them
+      const addedByQuery = query(
         collection(db, "expenses"),
         orderBy("date", "desc"),
-        where("addedBy", "==", userEmail) 
+        where("addedBy", "==", userEmail)
       );
 
-      const querySnapshot = await getDocs(q);
-      const temp = [];
-      let total = 0;
+      // Fetch expenses where user is in splitWith array
+      const splitWithQuery = query(
+        collection(db, "expenses"),
+        orderBy("date", "desc"),
+        where("splitWith", "array-contains", userEmail)
+      );
+
+      // Fetch expenses where user paid for them
+      const paidByQuery = query(
+        collection(db, "expenses"),
+        orderBy("date", "desc"),
+        where("paidBy", "==", userEmail)
+      );
+
+      // Execute all queries in parallel
+      const [addedBySnapshot, splitWithSnapshot, paidBySnapshot] = await Promise.all([
+        getDocs(addedByQuery),
+        getDocs(splitWithQuery),
+        getDocs(paidByQuery),
+      ]);
+
+      // Combine all expenses and remove duplicates
+      const expenseMap = new Map();
       
-      querySnapshot.forEach((doc) => {
+      // Add expenses where user added them
+      addedBySnapshot.forEach((doc) => {
         const data = doc.data();
-        const expenseData = { ...data, id: doc.id };
-        temp.push(expenseData);
-        total += Number(data.amount) || 0;
+        expenseMap.set(doc.id, { ...data, id: doc.id });
+      });
+
+      // Add expenses where user is in splitWith
+      splitWithSnapshot.forEach((doc) => {
+        if (!expenseMap.has(doc.id)) {
+          const data = doc.data();
+          expenseMap.set(doc.id, { ...data, id: doc.id });
+        }
+      });
+
+      // Add expenses where user paid
+      paidBySnapshot.forEach((doc) => {
+        if (!expenseMap.has(doc.id)) {
+          const data = doc.data();
+          expenseMap.set(doc.id, { ...data, id: doc.id });
+        }
+      });
+
+      // Convert map to array and sort by date
+      const temp = Array.from(expenseMap.values()).sort((a, b) => {
+        const dateA = a.date?.seconds || (a.date?.toDate ? a.date.toDate().getTime() : 0);
+        const dateB = b.date?.seconds || (b.date?.toDate ? b.date.toDate().getTime() : 0);
+        return dateB - dateA; // Descending order
+      });
+
+      let total = 0;
+      temp.forEach((expense) => {
+        total += Number(expense.amount) || 0;
       });
       
       setAllExpenses(temp);
@@ -176,6 +227,28 @@ const Account = (props) => {
       setTotalExpenses(temp.length);
     } catch (error) {
       console.error("Error fetching expenses:", error);
+      // Fallback to original query if array-contains fails
+      try {
+        const q = query(
+          collection(db, "expenses"),
+          orderBy("date", "desc"),
+          where("addedBy", "==", userEmail)
+        );
+        const querySnapshot = await getDocs(q);
+        const temp = [];
+        let total = 0;
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          const expenseData = { ...data, id: doc.id };
+          temp.push(expenseData);
+          total += Number(data.amount) || 0;
+        });
+        setAllExpenses(temp);
+        setTotalAmount(total);
+        setTotalExpenses(temp.length);
+      } catch (fallbackError) {
+        console.error("Fallback query also failed:", fallbackError);
+      }
     } finally {
       setRefreshing(false);
       setLoading(false);
@@ -426,6 +499,8 @@ const Account = (props) => {
                   description={item.description}
                   amount={item.amount}
                   date={item.date}
+                  isSplit={item.isSplit}
+                  splitWith={item.splitWith || []}
                 />
               )}
               scrollEnabled={false}
