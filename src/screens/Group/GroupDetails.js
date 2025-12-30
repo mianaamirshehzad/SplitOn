@@ -34,6 +34,8 @@ import {
   addDoc,
   Firestore,
   where,
+  updateDoc,
+  serverTimestamp,
 } from "firebase/firestore";
 import app from "../../firebase";
 import { getAuth } from "firebase/auth";
@@ -70,6 +72,8 @@ const GroupDetails = ({ route }) => {
   const [totalAmount, setTotalAmount] = useState(0);
   const [isEnabled, setIsEnabled] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [isSelectMode, setIsSelectMode] = useState(false);
+  const [selectedExpenseIds, setSelectedExpenseIds] = useState([]);
 
   const getUserExpenses = async () => {
     setRefreshing(true);
@@ -101,10 +105,24 @@ const GroupDetails = ({ route }) => {
 
   const calculateTotal = () => {
     let total = 0;
+    // Only calculate total from unsplit expenses
     allExpenses?.forEach((value) => {
-      total += Number(value.amount) || 0;
+      if (!value.isSplit) {
+        total += Number(value.amount) || 0;
+      }
     });
     setTotalAmount(total);
+  };
+
+  const calculateSelectedTotal = () => {
+    let total = 0;
+    selectedExpenseIds.forEach((expenseId) => {
+      const expense = allExpenses.find((e) => e.id === expenseId);
+      if (expense && !expense.isSplit) {
+        total += Number(expense.amount) || 0;
+      }
+    });
+    return total;
   };
 
   // Recalculate total whenever allExpenses changes
@@ -174,9 +192,74 @@ const GroupDetails = ({ route }) => {
   };
 
   const toggleSwitch = (value) => {
-    // Open/close the calculator modal based on switch state
     setIsEnabled(value);
-    setShowCalculateModal(value);
+    if (value) {
+      // Enable selection mode instead of opening modal immediately
+      setIsSelectMode(true);
+      setSelectedExpenseIds([]);
+    } else {
+      // Disable selection mode
+      setIsSelectMode(false);
+      setSelectedExpenseIds([]);
+    }
+  };
+
+  const handleExpenseSelect = (expenseId) => {
+    setSelectedExpenseIds((prev) => {
+      if (prev.includes(expenseId)) {
+        return prev.filter((id) => id !== expenseId);
+      } else {
+        return [...prev, expenseId];
+      }
+    });
+  };
+
+  const handleSplitSelected = () => {
+    if (selectedExpenseIds.length === 0) {
+      Alert.alert("No Selection", "Please select at least one expense to split.");
+      return;
+    }
+    // Filter out already split expenses
+    const unsplitSelected = selectedExpenseIds.filter((id) => {
+      const expense = allExpenses.find((e) => e.id === id);
+      return expense && !expense.isSplit;
+    });
+    
+    if (unsplitSelected.length === 0) {
+      Alert.alert("Already Split", "Selected expenses have already been split.");
+      return;
+    }
+    
+    setSelectedExpenseIds(unsplitSelected);
+    setShowCalculateModal(true);
+  };
+
+  const handleSplitComplete = async () => {
+    // Mark selected expenses as split
+    try {
+      const updatePromises = selectedExpenseIds.map((expenseId) => {
+        const expenseRef = doc(db, "expenses", expenseId);
+        return updateDoc(expenseRef, {
+          isSplit: true,
+          splitDate: serverTimestamp(),
+          splitBy: userEmail,
+        });
+      });
+      
+      await Promise.all(updatePromises);
+      
+      // Refresh expenses and reset selection
+      await getUserExpenses();
+      setSelectedExpenseIds([]);
+      setIsSelectMode(false);
+      setIsEnabled(false);
+      setShowCalculateModal(false);
+      
+      Alert.alert("Success", "Expenses have been split successfully!");
+    } catch (error) {
+      console.error("Error marking expenses as split:", error);
+      Alert.alert("Error", "Failed to mark expenses as split.");
+    }
   };
 
   const expenseDeletor = async (item) => {
@@ -291,12 +374,10 @@ const GroupDetails = ({ route }) => {
             style={[styles.inputWrapper, { justifyContent: "space-between" }]}
           >
             <Text style={styles.subtitle}>
-              Rs.{totalAmount} are spent in {groupName}
+              Rs.{totalAmount.toFixed(2)} are spent in {groupName} (unsplit)
             </Text>
             <View style={styles.toggle}>
-              <TouchableOpacity onPress={() => setShowCalculateModal(true)}>
-                <Text>Split</Text>
-              </TouchableOpacity>
+              <Text>Split</Text>
               <Switch
                 trackColor={{ false: "#767577", true: "#81b0ff" }}
                 thumbColor={isEnabled ? "#f5dd4b" : "#f4f3f4"}
@@ -305,6 +386,26 @@ const GroupDetails = ({ route }) => {
                 value={isEnabled}
               />
             </View>
+            {isSelectMode && (
+              <View style={styles.selectionInfoContainer}>
+                <MaterialIcons name="check-circle" size={18} color={Colors.BUTTON_COLOR} />
+                <Text style={styles.selectionInfoText}>
+                  {selectedExpenseIds.length > 0
+                    ? `${selectedExpenseIds.length} expense(s) selected`
+                    : "Select expenses to split"}
+                </Text>
+                <TouchableOpacity
+                  style={styles.cancelSelectButton}
+                  onPress={() => {
+                    setIsSelectMode(false);
+                    setIsEnabled(false);
+                    setSelectedExpenseIds([]);
+                  }}
+                >
+                  <Text style={styles.cancelSelectText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
           <View style={styles.searchContainer}>
             <View style={styles.inputWrapper}>
@@ -329,7 +430,7 @@ const GroupDetails = ({ route }) => {
 
       <FlatList
         data={filteredExpenses.length > 0 ? filteredExpenses : allExpenses}
-        keyExtractor={(item, index) => index.toString()}
+        keyExtractor={(item, index) => item.id || index.toString()}
         renderItem={({ item }) => (
           <ExpenseItem
             id={item.id}
@@ -337,8 +438,13 @@ const GroupDetails = ({ route }) => {
             description={item.description}
             amount={item.amount}
             date={item.date}
-            onLongPress={() => itemSelector(item)}
+            onLongPress={() => !isSelectMode && itemSelector(item)}
             selected={selection}
+            isSplit={item.isSplit}
+            isSelectMode={isSelectMode}
+            isSelected={selectedExpenseIds.includes(item.id)}
+            onSelect={handleExpenseSelect}
+            splitWith={item.splitWith || []}
           />
         )}
         refreshControl={
@@ -351,17 +457,19 @@ const GroupDetails = ({ route }) => {
         onClose={() => setModalVisible(false)}
         fetchLatestData={getUserExpenses}
         id={currentGroupId}
+        groupMembers={members || []}
       />
 
       <ExpenseCalculatorModal
         isVisible={showCalculateModal}
         onClose={() => {
           setShowCalculateModal(false);
-          setIsEnabled(false);
         }}
-        totalAmount={totalAmount}
+        onSplitComplete={handleSplitComplete}
+        totalAmount={selectedExpenseIds.length > 0 ? calculateSelectedTotal() : totalAmount}
         forLabel={groupDescription || groupName}
         members={members}
+        selectedExpenseIds={selectedExpenseIds}
       />
 
       {/* Settings Modal */}
@@ -416,13 +524,28 @@ const GroupDetails = ({ route }) => {
         </TouchableOpacity>
       </Modal>
 
-      {/* Floating Plus Icon */}
-      <TouchableOpacity
-        style={styles.floatingPlusButton}
-        onPress={() => setModalVisible(true)}
-      >
-        <Ionicons name="add" size={30} color="white" />
-      </TouchableOpacity>
+      {/* Floating Plus Icon - Hidden during selection mode */}
+      {!isSelectMode && (
+        <TouchableOpacity
+          style={styles.floatingPlusButton}
+          onPress={() => setModalVisible(true)}
+        >
+          <Ionicons name="add" size={30} color="white" />
+        </TouchableOpacity>
+      )}
+
+      {/* Floating Split Selected Button - Shown during selection mode */}
+      {isSelectMode && selectedExpenseIds.length > 0 && (
+        <TouchableOpacity
+          style={styles.floatingSplitButton}
+          onPress={handleSplitSelected}
+        >
+          <MaterialIcons name="account-balance-wallet" size={24} color={Colors.WHITE} />
+          <Text style={styles.floatingSplitButtonText}>
+            Split {selectedExpenseIds.length} Selected
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
@@ -581,6 +704,57 @@ const styles = StyleSheet.create({
     color: Colors.RED,
     fontWeight: "600",
     textAlign: "center",
+  },
+  selectionInfoContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    backgroundColor: Colors.BACKGROUND_COLOR,
+    borderRadius: 8,
+    marginHorizontal: 10,
+    marginTop: 10,
+    marginBottom: 5,
+    gap: 8,
+  },
+  selectionInfoText: {
+    fontSize: 14,
+    color: Colors.BLACK,
+    fontWeight: "500",
+    flex: 1,
+  },
+  cancelSelectButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  cancelSelectText: {
+    color: Colors.RED,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  floatingSplitButton: {
+    position: "absolute",
+    bottom: 20,
+    left: 20,
+    right: 20,
+    backgroundColor: Colors.BUTTON_COLOR,
+    borderRadius: 30,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+  },
+  floatingSplitButtonText: {
+    color: Colors.WHITE,
+    fontSize: 16,
+    fontWeight: "700",
   },
 });
 

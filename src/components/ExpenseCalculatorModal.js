@@ -25,9 +25,11 @@ const { height } = Dimensions.get("window");
 const ExpenseCalculatorModal = ({
   isVisible,
   onClose,
+  onSplitComplete,
   totalAmount = 0,
   forLabel = "",
   members = [],
+  selectedExpenseIds = [],
 }) => {
   const modalAnimation = useRef(new Animated.Value(0)).current;
   const db = getFirestore(app);
@@ -121,7 +123,9 @@ const ExpenseCalculatorModal = ({
       duration: 200,
       useNativeDriver: true,
     }).start(() => {
-      onClose && onClose();
+      if (onClose) {
+        onClose();
+      }
     });
   };
 
@@ -139,7 +143,10 @@ const ExpenseCalculatorModal = ({
       >
         <View style={styles.modalContent}>
           {/* Top close button */}
-          <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
+          <TouchableOpacity style={styles.closeButton} onPress={() => {
+            closeModal();
+            if (onClose) onClose();
+          }}>
             <MaterialIcons name="close" size={22} color={Colors.WHITE} />
           </TouchableOpacity>
 
@@ -235,7 +242,16 @@ const ExpenseCalculatorModal = ({
           </View>
 
           {/* Bottom primary button */}
-          <TouchableOpacity style={styles.primaryButton} onPress={closeModal}>
+          <TouchableOpacity
+            style={styles.primaryButton}
+            onPress={() => {
+              if (onSplitComplete) {
+                onSplitComplete();
+              } else {
+                closeModal();
+              }
+            }}
+          >
             <Text style={styles.primaryButtonText}>
               Split {formattedTotal}
             </Text>
@@ -256,7 +272,7 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     width: "100%",
-    height: height * 0.95,
+    height: height * 0.90,
     backgroundColor: "#111111",
     borderRadius: 24,
     paddingHorizontal: 20,

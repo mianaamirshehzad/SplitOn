@@ -32,6 +32,8 @@ import { BUTTON_COLOR, Colors } from "../../assets/Colours";
 import { Screens } from "../../assets/constants/screens";
 import ExpenseItem from "../../components/ExpenseItem";
 import { MaterialIcons } from "@expo/vector-icons";
+import Group from "../../components/Group";
+import { useNavigation } from "@react-navigation/native";
 
 const Account = (props) => {
   const auth = getAuth(app);
@@ -56,6 +58,11 @@ const Account = (props) => {
   const [allExpenses, setAllExpenses] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
   const [totalExpenses, setTotalExpenses] = useState(0);
+  
+  // Joined groups state
+  const [joinedGroups, setJoinedGroups] = useState([]);
+  
+  const navigation = useNavigation();
 
 
   // Fetch user profile from Firestore
@@ -175,11 +182,34 @@ const Account = (props) => {
     }
   };
 
+  const getJoinedGroups = async () => {
+    if (!userEmail) return;
+    
+    try {
+      const groupsRef = collection(db, "groups");
+      const querySnapshot = await getDocs(groupsRef);
+      const groupsData = [];
+      
+      querySnapshot.forEach((doc) => {
+        const groupData = { id: doc.id, ...doc.data() };
+        // Check if user is a member of this group
+        if (groupData.members && Array.isArray(groupData.members) && groupData.members.includes(userEmail)) {
+          groupsData.push(groupData);
+        }
+      });
+      
+      setJoinedGroups(groupsData);
+    } catch (error) {
+      console.error("Error fetching joined groups:", error);
+    }
+  };
+
 
   useEffect(() => {
     setLoading(true);
     getUserProfile();
     getMyExpenses();
+    getJoinedGroups();
     setLoading(false);
   }, [userEmail]);
 
@@ -211,6 +241,7 @@ const Account = (props) => {
     setRefreshing(true);
     getUserProfile();
     getMyExpenses();
+    getJoinedGroups();
   };
 
   const handleEditProfile = () => {
@@ -342,6 +373,37 @@ const Account = (props) => {
               <Text style={styles.statLabel}>Total Spent</Text>
             </View>
           </View>
+        </View>
+
+        {/* Joined Groups Section */}
+        <View style={styles.groupsSection}>
+          <Text style={styles.sectionTitle}>Joined Groups</Text>
+          {joinedGroups.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <MaterialIcons name="group" size={50} color={Colors.BUTTON_COLOR} />
+              <Text style={styles.emptyText}>No groups joined yet</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={joinedGroups}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => {
+                const isMember = item.members && Array.isArray(item.members) && item.members.includes(userEmail);
+                return (
+                  <Group
+                    group={item}
+                    userEmail={userEmail}
+                    isMember={isMember}
+                    onGroupPress={() => navigation.navigate("GroupDetails", {
+                      groupData: item,
+                      title: item.groupName
+                    })}
+                  />
+                );
+              }}
+              scrollEnabled={false}
+            />
+          )}
         </View>
 
         {/* Expenses Section */}
@@ -511,6 +573,10 @@ const styles = StyleSheet.create({
     color: "#666",
   },
   expensesSection: {
+    marginHorizontal: 15,
+    marginVertical: 10,
+  },
+  groupsSection: {
     marginHorizontal: 15,
     marginVertical: 10,
     marginBottom: 100,
