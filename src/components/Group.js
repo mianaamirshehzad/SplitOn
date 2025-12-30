@@ -1,8 +1,9 @@
 import React from "react";
 import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
 import { Colors } from "../assets/Colours";
+import { Images } from "../assets/Images";
 
-const Group = ({ group, onGroupPress }) => {
+const Group = ({ group, onGroupPress, userEmail, isMember, onJoinGroup }) => {
   const {
     groupImage,
     groupName,
@@ -13,25 +14,47 @@ const Group = ({ group, onGroupPress }) => {
     createdBy,
   } = group;
 
-  const creationDate = new Date(
-    createdAt.seconds * 1000 + createdAt.nanoseconds / 1000000
-  );
-  const formattedDate = creationDate.toLocaleDateString("en-US", {
-    year: "2-digit",
-    month: "short",
-    day: "numeric",
-    // hour: "2-digit",
-    // minute: "2-digit",
-  });
+  const getFormattedDate = (timestamp) => {
+    if (!timestamp) return "No date";
+    try {
+      let dateObj;
+      if (timestamp.seconds !== undefined) {
+        dateObj = new Date(timestamp.seconds * 1000 + (timestamp.nanoseconds || 0) / 1000000);
+      } else if (typeof timestamp.toDate === 'function') {
+        dateObj = timestamp.toDate();
+      } else if (timestamp instanceof Date) {
+        dateObj = timestamp;
+      } else {
+        dateObj = new Date(timestamp);
+      }
+      return dateObj.toLocaleDateString("en-US", {
+        year: "2-digit",
+        month: "short",
+        day: "numeric",
+      });
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Invalid date";
+    }
+  };
+
+  const formattedDate = getFormattedDate(createdAt);
+
+  const [imageError, setImageError] = React.useState(false);
 
   return (
     <TouchableOpacity style={styles.container} onPress={onGroupPress} >
       <View style={styles.leftContainer}>
-        <TouchableOpacity>
+        <TouchableOpacity disabled={true} >
           <Image
-            source={{ uri: groupImage }}
+            source={
+              groupImage && !imageError && groupImage.trim() !== ""
+                ? { uri: groupImage }
+                : Images.defaultGroupIcon
+            }
             style={styles.groupImage}
             resizeMode="cover"
+            onError={() => setImageError(true)}
           />
         </TouchableOpacity>
         <View style={styles.groupInfo}>
@@ -40,9 +63,23 @@ const Group = ({ group, onGroupPress }) => {
         </View>
       </View>
 
-      <Text style={styles.creationTime}>
-        {formattedDate ? formattedDate : "Loading..."}
-      </Text>
+      {isMember ? (
+        <Text style={styles.creationTime}>
+          {formattedDate}
+        </Text>
+      ) : (
+        <TouchableOpacity
+          style={styles.joinButton}
+          onPress={(e) => {
+            e.stopPropagation();
+            if (onJoinGroup) {
+              onJoinGroup();
+            }
+          }}
+        >
+          <Text style={styles.joinButtonText}>Join</Text>
+        </TouchableOpacity>
+      )}
     </TouchableOpacity>
   );
 };
@@ -70,6 +107,8 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25, // Circular image
+    borderWidth: 0.25,
+    borderColor: Colors.BLACK,
   },
   groupInfo: {
     marginLeft: 15,
@@ -82,12 +121,25 @@ const styles = StyleSheet.create({
   },
   groupDescription: {
     fontSize: 14,
-    color: Colors.GRAY,
+    color: Colors.BLACK,
     marginTop: 4,
+    opacity: 0.6,
   },
   creationTime: {
     fontSize: 12,
-    color: Colors.GRAY,
+    color: Colors.BLACK,
+    opacity: 0.6,
+  },
+  joinButton: {
+    backgroundColor: Colors.BUTTON_COLOR,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  joinButtonText: {
+    color: Colors.WHITE,
+    fontSize: 12,
+    fontWeight: "600",
   },
 });
 

@@ -6,7 +6,7 @@ import {
   FlatList,
   SafeAreaView,
 } from "react-native";
-import { collection, getDocs, getFirestore } from "firebase/firestore";
+import { collection, getDocs, getFirestore, doc, updateDoc, arrayUnion } from "firebase/firestore";
 import app from "../../firebase";
 import { useNavigation } from "@react-navigation/native";
 import CustomButton from "../../components/CustomButton";
@@ -15,6 +15,7 @@ import Corner from "../../components/Corner";
 import { Colors } from "../../assets/Colours";
 import GroupModal from "../../components/GroupModal";
 import Group from "../../components/Group";
+import Loading from "../../components/Loading";
 
 const Groups = () => {
   const auth = getAuth(app);
@@ -32,13 +33,37 @@ const Groups = () => {
     fetchGroups();
   };
 
+  const handleJoinGroup = async (groupId) => {
+    if (!userEmail) {
+      console.error("User email not available");
+      return;
+    }
+    try {
+      const groupRef = doc(db, "groups", groupId);
+      await updateDoc(groupRef, {
+        members: arrayUnion(userEmail),
+      });
+      // Refresh groups list after joining
+      fetchGroups();
+    } catch (error) {
+      console.error("Error joining group:", error);
+    }
+  };
+
   const fetchGroups = async () => {
-    const querySnapshot = await getDocs(collection(db, "groups"));
-    const groupsData = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-    setGroups(groupsData);
+    setLoading(true);
+    try {
+      const querySnapshot = await getDocs(collection(db, "groups"));
+      const groupsData = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setGroups(groupsData);
+    } catch (error) {
+      console.error("Error fetching groups:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   
@@ -55,23 +80,31 @@ const Groups = () => {
           <Text style={styles.title}>New Group</Text>
           <Text style={styles.subtitle}>Document your expense</Text>
         </View>
-        <FlatList
-          data={groups}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => {
-            return (
-              <Group
-                group={item}
-                onGroupPress={() => navigation.navigate("GroupDetails", {
-                  groupData: item,
-                  title: item.groupName
-                })}
-              />
-            )
-          }
-          }
-          contentContainerStyle={styles.listContent}
-        />
+        {loading ? (
+          <Loading />
+        ) : (
+          <FlatList
+            data={groups}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => {
+              const isMember = item.members && Array.isArray(item.members) && item.members.includes(userEmail);
+              return (
+                <Group
+                  group={item}
+                  userEmail={userEmail}
+                  isMember={isMember}
+                  onGroupPress={() => navigation.navigate("GroupDetails", {
+                    groupData: item,
+                    title: item.groupName
+                  })}
+                  onJoinGroup={() => handleJoinGroup(item.id)}
+                />
+              )
+            }
+            }
+            contentContainerStyle={styles.listContent}
+          />
+        )}
       </View>
       <View style={styles.buttonContainer}>
         <CustomButton name={"+ New Group"} onPress={() => setShowModal(true)} />
