@@ -10,6 +10,8 @@ import {
   Animated,
   Dimensions,
   Button,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { addDoc, collection, getFirestore, doc, getDoc, query, where, getDocs } from "firebase/firestore";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -227,7 +229,11 @@ const ExpenseModal = ({ isVisible, onClose, fetchLatestData, id, groupMembers = 
 
   return (
     <Modal transparent visible={isVisible} animationType="fade">
-      <View style={styles.modalContainer}>
+      <KeyboardAvoidingView
+        style={styles.modalContainer}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+      >
         <Animated.View
           style={[styles.modalContent, { opacity: modalAnimation }]}
         >
@@ -271,152 +277,149 @@ const ExpenseModal = ({ isVisible, onClose, fetchLatestData, id, groupMembers = 
                 style={styles.scrollView}
                 contentContainerStyle={styles.scrollViewContent}
                 showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
               >
                 <View style={styles.titleContainer}>
-                  <Text style={styles.title}>What you spent?</Text>
+                  <Text style={styles.title}>What did you spend?</Text>
                   <Text style={styles.subtitle}>Document your expense</Text>
                 </View>
 
-              {/* <Spinner animating={loading} /> */}
+                {/* <Spinner animating={loading} /> */}
 
-              <CustomInput
-                showTitle={true}
-                title="Amount"
-                keyboardType="numeric"
-                placeholder="Rs."
-                value={amount}
-                onChangeText={(text) => setAmount(text)}
-              />
-              <CustomInput
-                showTitle={true}
-                autoCapitalize="words"
-                title="Description"
-                value={description}
-                placeholder="Expense details..."
-                onChangeText={(text) => setDescription(text)}
-              />
-              <CustomInput
-                showTitle={true}
-                date={date && typeof date.format === 'function' ? date.format("DD-MM-YYYY HH:mm") : ""}
-                title="Date & Time"
-                showDatePicker={showDatePicker}
-              />
-
-              {/* Paid By Dropdown */}
-              <View style={styles.dropdownContainer}>
-                <Text style={styles.dropdownTitle}>Paid By</Text>
-                <TouchableOpacity
-                  style={styles.dropdownButton}
-                  onPress={() => {
-                    setShowPaidByDropdown(!showPaidByDropdown);
-                    setShowSplitMembersDropdown(false);
-                  }}
-                >
-                  <Text style={styles.dropdownButtonText}>
-                    {memberNames[paidBy] || paidBy || "Select member"}
-                  </Text>
-                  <MaterialIcons
-                    name={showPaidByDropdown ? "keyboard-arrow-up" : "keyboard-arrow-down"}
-                    size={24}
-                    color={Colors.BLACK}
-                  />
-                </TouchableOpacity>
-                {showPaidByDropdown && (
-                  <View style={styles.dropdownList}>
-                    <ScrollView style={styles.dropdownScrollView}>
-                      {groupMembers.map((member, index) => {
-                        const email = typeof member === "string" ? member : member?.email || member;
-                        const name = memberNames[email] || email;
-                        return (
-                          <TouchableOpacity
-                            key={`paidBy-${email}-${index}`}
-                            style={[
-                              styles.dropdownItem,
-                              paidBy === email && styles.dropdownItemSelected,
-                            ]}
-                            onPress={() => {
-                              setPaidBy(email);
-                              setShowPaidByDropdown(false);
-                            }}
-                          >
-                            <Text style={styles.dropdownItemText}>{name}</Text>
-                            {paidBy === email && (
-                              <MaterialIcons name="check" size={20} color={Colors.BUTTON_COLOR} />
-                            )}
-                          </TouchableOpacity>
-                        );
-                      })}
-                    </ScrollView>
-                  </View>
-                )}
-              </View>
-
-              {/* Split Toggle */}
-              <View style={styles.splitToggleContainer}>
-                <View style={styles.splitToggleRow}>
-                  <Text style={styles.splitToggleLabel}>Split this expense</Text>
-                  <Switch
-                    trackColor={{ false: "#767577", true: Colors.BUTTON_COLOR }}
-                    thumbColor={isSplitEnabled ? "#f4f3f4" : "#f4f3f4"}
-                    ios_backgroundColor="#3e3e3e"
-                    onValueChange={(value) => {
-                      setIsSplitEnabled(value);
-                      if (!value) {
-                        setSelectedSplitMembers([]);
-                      }
-                      setShowSplitMembersDropdown(false);
-                    }}
-                    value={isSplitEnabled}
+                <View style={styles.inputContainer}>
+                  <CustomInput
+                    showTitle={true}
+                    title="Amount"
+                    keyboardType="numeric"
+                    placeholder="Rs."
+                    value={amount}
+                    onChangeText={(text) => setAmount(text)}
                   />
                 </View>
-              </View>
 
-              {/* Split Members Selection */}
-              {isSplitEnabled && (
+                <View style={styles.inputContainer}>
+                  <CustomInput
+                    showTitle={true}
+                    autoCapitalize="words"
+                    title="Description"
+                    value={description}
+                    placeholder="Expense details..."
+                    onChangeText={(text) => setDescription(text)}
+                  />
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <CustomInput
+                    showTitle={true}
+                    date={date && typeof date.format === 'function' ? date.format("DD-MM-YYYY HH:mm") : ""}
+                    title="Date & Time"
+                    showDatePicker={showDatePicker}
+                  />
+                </View>
+
+                {/* Paid By Dropdown */}
                 <View style={styles.dropdownContainer}>
-                  <Text style={styles.dropdownTitle}>Split with</Text>
+                  <Text style={styles.dropdownTitle}>Paid By</Text>
                   <TouchableOpacity
                     style={styles.dropdownButton}
                     onPress={() => {
-                      setShowSplitMembersDropdown(!showSplitMembersDropdown);
-                      setShowPaidByDropdown(false);
+                      setShowPaidByDropdown(!showPaidByDropdown);
+                      setShowSplitMembersDropdown(false);
                     }}
                   >
                     <Text style={styles.dropdownButtonText}>
-                      {selectedSplitMembers.length > 0
-                        ? `${selectedSplitMembers.length} member(s) selected`
-                        : "Select members"}
+                      {memberNames[paidBy] || paidBy || "Select member"}
                     </Text>
                     <MaterialIcons
-                      name={showSplitMembersDropdown ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+                      name={showPaidByDropdown ? "keyboard-arrow-up" : "keyboard-arrow-down"}
                       size={24}
                       color={Colors.BLACK}
                     />
                   </TouchableOpacity>
-                  {showSplitMembersDropdown && (
+                  {showPaidByDropdown && (
                     <View style={styles.dropdownList}>
                       <ScrollView style={styles.dropdownScrollView}>
                         {groupMembers.map((member, index) => {
                           const email = typeof member === "string" ? member : member?.email || member;
                           const name = memberNames[email] || email;
-                          const isSelected = selectedSplitMembers.includes(email);
                           return (
                             <TouchableOpacity
-                              key={`split-${email}-${index}`}
-                              style={styles.dropdownItem}
+                              key={`paidBy-${email}-${index}`}
+                              style={[
+                                styles.dropdownItem,
+                                paidBy === email && styles.dropdownItemSelected,
+                              ]}
                               onPress={() => {
-                                if (isSelected) {
-                                  setSelectedSplitMembers(
-                                    selectedSplitMembers.filter((e) => e !== email)
-                                  );
-                                } else {
-                                  setSelectedSplitMembers([...selectedSplitMembers, email]);
-                                }
+                                setPaidBy(email);
+                                setShowPaidByDropdown(false);
                               }}
                             >
-                              <Checkbox
-                                value={isSelected}
-                                onValueChange={() => {
+                              <Text style={styles.dropdownItemText}>{name}</Text>
+                              {paidBy === email && (
+                                <MaterialIcons name="check" size={20} color={Colors.BUTTON_COLOR} />
+                              )}
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </ScrollView>
+                    </View>
+                  )}
+                </View>
+
+                {/* Split Toggle */}
+                <View style={styles.splitToggleContainer}>
+                  <View style={styles.splitToggleRow}>
+                    <Text style={styles.splitToggleLabel}>Split this expense</Text>
+                    <Switch
+                      trackColor={{ false: "#767577", true: Colors.BUTTON_COLOR }}
+                      thumbColor={isSplitEnabled ? "#f4f3f4" : "#f4f3f4"}
+                      ios_backgroundColor="#3e3e3e"
+                      onValueChange={(value) => {
+                        setIsSplitEnabled(value);
+                        if (!value) {
+                          setSelectedSplitMembers([]);
+                        }
+                        setShowSplitMembersDropdown(false);
+                      }}
+                      value={isSplitEnabled}
+                    />
+                  </View>
+                </View>
+
+                {/* Split Members Selection */}
+                {isSplitEnabled && (
+                  <View style={styles.dropdownContainer}>
+                    <Text style={styles.dropdownTitle}>Split with</Text>
+                    <TouchableOpacity
+                      style={styles.dropdownButton}
+                      onPress={() => {
+                        setShowSplitMembersDropdown(!showSplitMembersDropdown);
+                        setShowPaidByDropdown(false);
+                      }}
+                    >
+                      <Text style={styles.dropdownButtonText}>
+                        {selectedSplitMembers.length > 0
+                          ? `${selectedSplitMembers.length} member(s) selected`
+                          : "Select members"}
+                      </Text>
+                      <MaterialIcons
+                        name={showSplitMembersDropdown ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+                        size={24}
+                        color={Colors.BLACK}
+                      />
+                    </TouchableOpacity>
+                    {showSplitMembersDropdown && (
+                      <View style={styles.dropdownList}>
+                        <ScrollView style={styles.dropdownScrollView}>
+                          {groupMembers.map((member, index) => {
+                            const email = typeof member === "string" ? member : member?.email || member;
+                            const name = memberNames[email] || email;
+                            const isSelected = selectedSplitMembers.includes(email);
+                            return (
+                              <TouchableOpacity
+                                key={`split-${email}-${index}`}
+                                style={styles.dropdownItem}
+                                onPress={() => {
                                   if (isSelected) {
                                     setSelectedSplitMembers(
                                       selectedSplitMembers.filter((e) => e !== email)
@@ -425,36 +428,50 @@ const ExpenseModal = ({ isVisible, onClose, fetchLatestData, id, groupMembers = 
                                     setSelectedSplitMembers([...selectedSplitMembers, email]);
                                   }
                                 }}
-                              />
-                              <Text style={styles.dropdownItemText}>{name}</Text>
-                            </TouchableOpacity>
-                          );
-                        })}
-                      </ScrollView>
-                    </View>
+                              >
+                                <Checkbox
+                                  value={isSelected}
+                                  onValueChange={() => {
+                                    if (isSelected) {
+                                      setSelectedSplitMembers(
+                                        selectedSplitMembers.filter((e) => e !== email)
+                                      );
+                                    } else {
+                                      setSelectedSplitMembers([...selectedSplitMembers, email]);
+                                    }
+                                  }}
+                                />
+                                <Text style={styles.dropdownItemText}>{name}</Text>
+                              </TouchableOpacity>
+                            );
+                          })}
+                        </ScrollView>
+                      </View>
+                    )}
+                  </View>
+                )}
+
+                <View style={styles.buttonContainer}>
+                  {loading ? (
+                    <Spinner loading={loading} />
+                  ) : (
+                    <CustomButton
+                      name={Strings.ADD_EXPENSE}
+                      onPress={addExpenseToAccount}
+                      disabled={
+                        !amount.trim() ||
+                        !description.trim() ||
+                        !date ||
+                        (isSplitEnabled && selectedSplitMembers.length === 0)
+                      }
+                    />
                   )}
                 </View>
-              )}
-
-              {loading ? (
-                <Spinner loading={loading} />
-              ) : (
-                <CustomButton
-                  name={Strings.ADD_EXPENSE}
-                  onPress={addExpenseToAccount}
-                  disabled={
-                    !amount.trim() ||
-                    !description.trim() ||
-                    !date ||
-                    (isSplitEnabled && selectedSplitMembers.length === 0)
-                  }
-                />
-              )}
               </ScrollView>
             </>
           )}
         </Animated.View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 };
@@ -480,11 +497,21 @@ const styles = StyleSheet.create({
   },
   scrollViewContent: {
     width: "100%",
-    paddingBottom: 10,
+    paddingBottom: 20,
+
   },
   titleContainer: {
     marginBottom: 20,
     alignItems: "center",
+  },
+  inputContainer: {
+    width: "100%",
+    marginBottom: 15,
+  },
+  buttonContainer: {
+    width: "100%",
+    marginTop: 10,
+    marginBottom: 10,
   },
   title: {
     fontSize: 24,
@@ -536,24 +563,29 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   dropdownContainer: {
-    width: "100%",
+    width: "95%",
+    alignSelf: "center",
     marginBottom: 15,
     zIndex: 1,
+    padding: 5,
   },
   dropdownTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: Colors.BLACK,
+    color: Colors.BUTTON_COLOR,
+    paddingLeft: 5,
     marginBottom: 8,
   },
   dropdownButton: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    borderWidth: 1,
+    borderWidth: 0.5,
     borderColor: Colors.BUTTON_COLOR,
-    borderRadius: 8,
-    padding: 12,
+    borderRadius: 10,
+    height: 50,
+    padding: 15,
+    margin: 5,
     backgroundColor: Colors.WHITE,
   },
   dropdownButtonText: {
@@ -598,8 +630,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   splitToggleContainer: {
-    width: "100%",
+    width: "95%",
+    alignSelf: "center",
     marginBottom: 15,
+    padding: 5,
   },
   splitToggleRow: {
     flexDirection: "row",

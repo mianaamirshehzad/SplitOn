@@ -40,7 +40,7 @@ const CustomInput = forwardRef((props, ref) => {
           <TextInput
             ref={ref}
             placeholder={props.placeholder}
-            style={styles.input}
+            style={[props.style, styles.input]}
             secureTextEntry={props.secureTextEntry}
             onChangeText={(t) => props.onChangeText(t)}
             value={props.value}
@@ -61,7 +61,7 @@ export default CustomInput;
 
 const styles = StyleSheet.create({
   container: {
-    width: "90%",
+    width: "95%",
     padding: 5,
     alignSelf: "center",
   },
