@@ -21,6 +21,7 @@ import {
   updateDoc,
   addDoc,
   or,
+  serverTimestamp,
 } from "firebase/firestore";
 import { getAuth, signOut } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -35,6 +36,7 @@ import ExpenseItem from "../../components/ExpenseItem";
 import { MaterialIcons } from "@expo/vector-icons";
 import Group from "../../components/Group";
 import { useNavigation } from "@react-navigation/native";
+import ProfilePhotoPicker from "../../components/ProfilePhotoPicker";
 
 const Account = (props) => {
   const auth = getAuth(app);
@@ -48,7 +50,9 @@ const Account = (props) => {
     name: "",
     email: "",
     mobile: "",
+    photoURL: "",
   });
+  const [userDocId, setUserDocId] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState("");
   const [editMobile, setEditMobile] = useState("");
@@ -65,6 +69,30 @@ const Account = (props) => {
   
   const navigation = useNavigation();
 
+  const ensureUserDocRef = async () => {
+    if (!userEmail) return null;
+
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, where("email", "==", userEmail));
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      const existing = querySnapshot.docs[0];
+      setUserDocId(existing.id);
+      return doc(db, "users", existing.id);
+    }
+
+    const newDoc = await addDoc(collection(db, "users"), {
+      name: user?.displayName || "",
+      email: userEmail,
+      mobile: "",
+      photoURL: "",
+      createdAt: serverTimestamp(),
+    });
+    setUserDocId(newDoc.id);
+    return doc(db, "users", newDoc.id);
+  };
+
 
   // Fetch user profile from Firestore
   const getUserProfile = async () => {
@@ -78,10 +106,12 @@ const Account = (props) => {
       if (!querySnapshot.empty) {
         const userDoc = querySnapshot.docs[0];
         const userData = userDoc.data();
+        setUserDocId(userDoc.id);
         setUserProfile({
           name: userData.name || "",
           email: userData.email || userEmail,
           mobile: userData.mobile || "",
+          photoURL: userData.photoURL || "",
         });
         setEditName(userData.name || "");
         setEditMobile(userData.mobile || "");
@@ -91,6 +121,7 @@ const Account = (props) => {
           name: user?.displayName || "",
           email: userEmail,
           mobile: "",
+          photoURL: "",
         });
         setEditName(user?.displayName || "");
         setEditMobile("");
@@ -102,6 +133,7 @@ const Account = (props) => {
         name: user?.displayName || "",
         email: userEmail,
         mobile: "",
+        photoURL: "",
       });
     }
   };
@@ -117,23 +149,12 @@ const Account = (props) => {
     
     try {
       setLoading(true);
-      const usersRef = collection(db, "users");
-      const q = query(usersRef, where("email", "==", userEmail));
-      const querySnapshot = await getDocs(q);
-      
-      if (!querySnapshot.empty) {
-        // Update existing user document
-        const userDocRef = doc(db, "users", querySnapshot.docs[0].id);
+      const userDocRef = await ensureUserDocRef();
+      if (userDocRef) {
         await updateDoc(userDocRef, {
           name: editName.trim(),
           mobile: editMobile.trim(),
-        });
-      } else {
-        // Create new user document if it doesn't exist
-        await addDoc(collection(db, "users"), {
-          name: editName.trim(),
-          email: userEmail,
-          mobile: editMobile.trim(),
+          updatedAt: serverTimestamp(),
         });
       }
       
@@ -329,6 +350,7 @@ const Account = (props) => {
     setEditMobile(userProfile.mobile);
   };
 
+
   return (
     <View style={styles.container}>
       <View style={styles.cornerTop}>
@@ -352,16 +374,27 @@ const Account = (props) => {
       >
         <View style={styles.titleContainer}>
           <Text style={GlobalStyles.title}>My Account</Text>
+          <TouchableOpacity
+            style={styles.logoutIconButton}
+            onPress={logoutUser}
+            accessibilityRole="button"
+            accessibilityLabel="Logout"
+          >
+            <MaterialIcons name="logout" size={24} color={Colors.BUTTON_COLOR} />
+          </TouchableOpacity>
         </View>
 
         {/* User Profile Section */}
         <View style={styles.profileSection}>
           <View style={styles.profileHeader}>
-            <View style={styles.avatarContainer}>
-              <Text style={styles.avatarText}>
-                {userProfile.name ? userProfile.name.charAt(0).toUpperCase() : "U"}
-              </Text>
-            </View>
+            <ProfilePhotoPicker
+              userEmail={userEmail}
+              userId={userId}
+              displayName={userProfile.name}
+              photoURL={userProfile.photoURL}
+              disabled={loading}
+              onPhotoURLChange={(url) => setUserProfile((p) => ({ ...p, photoURL: url }))}
+            />
             {!isEditing && (
               <TouchableOpacity
                 style={styles.editButton}
@@ -508,10 +541,6 @@ const Account = (props) => {
           )}
         </View>
       </ScrollView>
-
-      <View style={styles.logoutContainer}>
-        <CustomButton name="Logout" onPress={() => logoutUser()} />
-      </View>
     </View>
   );
 };
@@ -525,9 +554,25 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   titleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingTop: 45,
     paddingHorizontal: 15,
     paddingBottom: 10,
+  },
+  logoutIconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: Colors.WHITE,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
   profileSection: {
     backgroundColor: Colors.WHITE,
@@ -546,19 +591,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 20,
-  },
-  avatarContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: Colors.BUTTON_COLOR,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  avatarText: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: Colors.WHITE,
   },
   editButton: {
     padding: 8,
@@ -667,15 +699,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
     color: "#666",
-  },
-  logoutContainer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: Colors.BACKGROUND_COLOR,
-    padding: 15,
-    paddingBottom: 30,
   },
   cornerTop: {
     left: -50,

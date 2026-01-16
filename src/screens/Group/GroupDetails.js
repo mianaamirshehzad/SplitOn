@@ -15,7 +15,6 @@ import {
 } from "react-native";
 // import firestore from '@react-native-firebase/firestore';
 import * as Sharing from "expo-sharing";
-import Checkbox from "expo-checkbox";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Colors } from "../../assets/Colours";
@@ -284,38 +283,8 @@ const GroupDetails = ({ route }) => {
             style={[styles.inputWrapper, { justifyContent: "space-between" }]}
           >
             <Text style={styles.subtitle}>
-              Rs.{totalAmount.toFixed(2)} are spent in {groupName} (unsplit)
+              Rs.{totalAmount.toFixed(2)} are spent in {groupName}
             </Text>
-            <View style={styles.toggle}>
-              <Text>Split</Text>
-              <Switch
-                trackColor={{ false: "#767577", true: "#81b0ff" }}
-                thumbColor={isEnabled ? "#f5dd4b" : "#f4f3f4"}
-                ios_backgroundColor="#3e3e3e"
-                onValueChange={toggleSwitch}
-                value={isEnabled}
-              />
-            </View>
-            {isSelectMode && (
-              <View style={styles.selectionInfoContainer}>
-                <MaterialIcons name="check-circle" size={18} color={Colors.BUTTON_COLOR} />
-                <Text style={styles.selectionInfoText}>
-                  {selectedExpenseIds.length > 0
-                    ? `${selectedExpenseIds.length} expense(s) selected`
-                    : "Select expenses to split"}
-                </Text>
-                <TouchableOpacity
-                  style={styles.cancelSelectButton}
-                  onPress={() => {
-                    setIsSelectMode(false);
-                    setIsEnabled(false);
-                    setSelectedExpenseIds([]);
-                  }}
-                >
-                  <Text style={styles.cancelSelectText}>Cancel</Text>
-                </TouchableOpacity>
-              </View>
-            )}
           </View>
           <View style={styles.searchContainer}>
             <View style={styles.inputWrapper}>
@@ -348,12 +317,9 @@ const GroupDetails = ({ route }) => {
             description={item.description}
             amount={item.amount}
             date={item.date}
-            onLongPress={() => !isSelectMode && itemSelector(item)}
+            onLongPress={() => itemSelector(item)}
             selected={selection}
             isSplit={item.isSplit}
-            isSelectMode={isSelectMode}
-            isSelected={selectedExpenseIds.includes(item.id)}
-            onSelect={handleExpenseSelect}
             splitWith={item.splitWith || []}
           />
         )}
@@ -368,18 +334,6 @@ const GroupDetails = ({ route }) => {
         fetchLatestData={getUserExpenses}
         id={currentGroupId}
         groupMembers={members || []}
-      />
-
-      <ExpenseCalculatorModal
-        isVisible={showCalculateModal}
-        onClose={() => {
-          setShowCalculateModal(false);
-        }}
-        onSplitComplete={handleSplitComplete}
-        totalAmount={selectedExpenseIds.length > 0 ? calculateSelectedTotal() : totalAmount}
-        forLabel={groupDescription || groupName}
-        members={members}
-        selectedExpenseIds={selectedExpenseIds}
       />
 
       {/* Settings Modal */}
@@ -434,28 +388,12 @@ const GroupDetails = ({ route }) => {
         </TouchableOpacity>
       </Modal>
 
-      {/* Floating Plus Icon - Hidden during selection mode */}
-      {!isSelectMode && (
-        <TouchableOpacity
-          style={styles.floatingPlusButton}
-          onPress={() => setModalVisible(true)}
-        >
-          <Ionicons name="add" size={30} color="white" />
-        </TouchableOpacity>
-      )}
-
-      {/* Floating Split Selected Button - Shown during selection mode */}
-      {isSelectMode && selectedExpenseIds.length > 0 && (
-        <TouchableOpacity
-          style={styles.floatingSplitButton}
-          onPress={handleSplitSelected}
-        >
-          <MaterialIcons name="account-balance-wallet" size={24} color={Colors.WHITE} />
-          <Text style={styles.floatingSplitButtonText}>
-            Split {selectedExpenseIds.length} Selected
-          </Text>
-        </TouchableOpacity>
-      )}
+      <TouchableOpacity
+        style={styles.floatingPlusButton}
+        onPress={() => setModalVisible(true)}
+      >
+        <Ionicons name="add" size={30} color="white" />
+      </TouchableOpacity>
     </View>
   );
 };
