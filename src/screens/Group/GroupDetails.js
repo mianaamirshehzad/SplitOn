@@ -34,6 +34,7 @@ import {
   where,
   updateDoc,
   serverTimestamp,
+  writeBatch,
 } from "firebase/firestore";
 import app from "../../firebase";
 import { getAuth } from "firebase/auth";
@@ -67,6 +68,7 @@ const GroupDetails = ({ route }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [totalAmount, setTotalAmount] = useState(0);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [deletingGroup, setDeletingGroup] = useState(false);
 
   const getUserExpenses = async () => {
     setRefreshing(true);
@@ -241,6 +243,64 @@ const GroupDetails = ({ route }) => {
     }
   }, [title]);
 
+  const deleteGroupAndExpenses = async () => {
+    if (!currentGroupId) return;
+    if (!userEmail) {
+      Alert.alert("Not logged in", "Please login again to delete a group.");
+      return;
+    }
+
+    // Only creator can delete (based on current group schema)
+    if (groupData?.createdBy && groupData.createdBy !== userEmail) {
+      Alert.alert("Not allowed", "Only the group creator can delete this group.");
+      return;
+    }
+
+    Alert.alert(
+      "Delete Group?",
+      "This will permanently delete the group and all expenses inside it. This cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setDeletingGroup(true);
+              setShowSettingsModal(false);
+
+              // Delete all expenses for this group in batches (Firestore batch limit = 500)
+              const expensesQ = query(
+                collection(db, "expenses"),
+                where("groupId", "==", currentGroupId)
+              );
+              const expensesSnap = await getDocs(expensesQ);
+
+              const expenseDocs = expensesSnap.docs;
+              const chunkSize = 450;
+              for (let i = 0; i < expenseDocs.length; i += chunkSize) {
+                const batch = writeBatch(db);
+                expenseDocs.slice(i, i + chunkSize).forEach((d) => batch.delete(d.ref));
+                await batch.commit();
+              }
+
+              // Delete the group document
+              await deleteDoc(doc(db, "groups", currentGroupId));
+
+              Alert.alert("Deleted", "Group deleted successfully.");
+              navigation.goBack();
+            } catch (error) {
+              console.error("Error deleting group:", error);
+              Alert.alert("Error", "Failed to delete group. Please try again.");
+            } finally {
+              setDeletingGroup(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <View style={styles.container}>
       {/* <View style={styles.headerContainer}>
@@ -377,6 +437,20 @@ const GroupDetails = ({ route }) => {
                 color={Colors.BUTTON_COLOR}
               />
               <Text style={styles.settingsOptionText}>Add Member</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.settingsOption}
+              onPress={deleteGroupAndExpenses}
+              disabled={deletingGroup}
+            >
+              <MaterialCommunityIcons
+                name="delete"
+                size={24}
+                color={Colors.RED}
+              />
+              <Text style={[styles.settingsOptionText, { color: Colors.RED }]}>
+                {deletingGroup ? "Deleting..." : "Delete Group"}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.settingsOption, styles.settingsOptionCancel]}

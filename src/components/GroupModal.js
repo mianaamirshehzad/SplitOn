@@ -25,8 +25,7 @@ import { Colors } from "../assets/Colours";
 import { Images } from "../assets/Images";
 import { Ionicons } from "@expo/vector-icons";
 
-const defaultGroupImage =
-  "https://unsplash.com/photos/fan-of-100-us-dollar-banknotes-lCPhGxs7pww";
+const defaultGroupImage = "";
 
 const GroupModal = ({ visible, onClose }) => {
   const auth = getAuth(app);
@@ -35,7 +34,7 @@ const GroupModal = ({ visible, onClose }) => {
   const db = getFirestore(app);
   const [groupName, setGroupName] = useState("");
   const [groupDescription, setGroupDescription] = useState("");
-  const [groupImage, setGroupImage] = useState();
+  const [groupImage, setGroupImage] = useState("");
   const [loading, setLoading] = useState(false);
 
   const pickImage = async () => {
@@ -52,7 +51,8 @@ const GroupModal = ({ visible, onClose }) => {
     });
 
     if (!result.canceled) {
-      setGroupImage(result.assets[0].uri);
+      const uri = result?.assets?.[0]?.uri;
+      if (uri) setGroupImage(uri);
     }
   };
 
@@ -68,7 +68,8 @@ const GroupModal = ({ visible, onClose }) => {
       const groupRef = await addDoc(collection(db, "groups"), {
         groupName: groupName.trim(),
         groupDescription: groupDescription.trim(),
-        groupImage: groupImage,
+        // Firestore does not allow undefined values
+        groupImage: groupImage || defaultGroupImage || "",
         createdBy: userEmail,
         createdAt: serverTimestamp(),
         members: [userEmail],

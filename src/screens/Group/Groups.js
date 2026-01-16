@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { collection, getDocs, getFirestore, doc, updateDoc, arrayUnion } from "firebase/firestore";
 import app from "../../firebase";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import CustomButton from "../../components/CustomButton";
 import { getAuth } from "firebase/auth";
 import Corner from "../../components/Corner";
@@ -71,6 +71,12 @@ const Groups = () => {
   useEffect(() => {
     fetchGroups();
   }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchGroups();
+    }, [])
+  );
 
   return (
     <SafeAreaView style={styles.container} >

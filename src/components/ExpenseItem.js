@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { collection, query, where, getDocs, getFirestore } from "firebase/firestore";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Colors } from "../assets/Colours";
@@ -7,39 +7,10 @@ import Checkbox from "expo-checkbox";
 import app from "../firebase";
 
 const ExpenseItem = ({ addedBy, description, amount, date, onLongPress, id, selected, isSplit, isSelectMode, isSelected, onSelect, splitWith = []}) => {
-  const [userName, setUserName] = useState(addedBy); // Default to email if name not found
-  const [splitUsers, setSplitUsers] = useState([]); // Array of {email, name} for split users
+  const [splitUsers, setSplitUsers] = useState([]); // Array of {email, name, photoURL}
   const db = getFirestore(app);
 
-  // Fetch user name from Firestore
-  useEffect(() => {
-    const fetchUserName = async () => {
-      if (!addedBy) return;
-      
-      try {
-        const usersRef = collection(db, "users");
-        const q = query(usersRef, where("email", "==", addedBy));
-        const querySnapshot = await getDocs(q);
-        
-        if (!querySnapshot.empty) {
-          const userData = querySnapshot.docs[0].data();
-          const name = userData.name || addedBy;
-          setUserName(name);
-        } else {
-          // If user not found, use email
-          setUserName(addedBy);
-        }
-      } catch (error) {
-        console.error("Error fetching user name:", error);
-        // Fallback to email on error
-        setUserName(addedBy);
-      }
-    };
-
-    fetchUserName();
-  }, [addedBy]);
-
-  // Fetch split users' names
+  // Fetch split users' names + profile photos
   useEffect(() => {
     const fetchSplitUsers = async () => {
       if (!Array.isArray(splitWith) || splitWith.length === 0) {
@@ -60,32 +31,29 @@ const ExpenseItem = ({ addedBy, description, amount, date, onLongPress, id, sele
               return {
                 email,
                 name: userData.name || email,
-              };
-            } else {
-              return {
-                email,
-                name: email,
+                photoURL: userData.photoURL || "",
               };
             }
+
+            return { email, name: email, photoURL: "" };
           } catch (error) {
             console.error(`Error fetching split user ${email}:`, error);
-            return {
-              email,
-              name: email,
-            };
+            return { email, name: email, photoURL: "" };
           }
         });
 
         const results = await Promise.all(userPromises);
-        setSplitUsers(results.filter((user) => user !== null));
+        setSplitUsers(results.filter(Boolean));
       } catch (error) {
         console.error("Error fetching split users:", error);
         setSplitUsers([]);
       }
     };
 
-    fetchSplitUsers();
-  }, [splitWith]);
+    // Only fetch if this expense is marked split
+    if (isSplit) fetchSplitUsers();
+    else setSplitUsers([]);
+  }, [db, isSplit, splitWith]);
 
   // Format date and time from Firestore Timestamp or Date object
   const formatDateAndTime = (dateValue) => {
@@ -148,7 +116,6 @@ const ExpenseItem = ({ addedBy, description, amount, date, onLongPress, id, sele
       style={[
         styles.container,
         isSelected && styles.selectedContainer,
-        isSplit && styles.splitContainer
       ]}
       id={id}
       onPress={handlePress}
@@ -172,38 +139,46 @@ const ExpenseItem = ({ addedBy, description, amount, date, onLongPress, id, sele
             </View>
           )}
         </View>
-        <Text style={[styles.description, isSplit && styles.splitText]}>{description}</Text>
-        <View style={styles.spentByContainer}>
-          <Text style={styles.addedBy}>Spent by {userName}</Text>
-          {isSplit && splitUsers.length > 0 && (
-            <View style={styles.splitUsersContainer}>
-              <Text style={styles.splitWithLabel}>Split with:</Text>
-              <View style={styles.avatarContainer}>
-                {splitUsers.slice(0, 4).map((user, index) => {
-                  const initials = user.name
+        <Text style={styles.description}>{description}</Text>
+        {isSplit && splitUsers.length > 0 && (
+          <View style={styles.splitRow}>
+            <Text style={styles.splitWithLabel}>Split with</Text>
+            <View style={styles.avatarStack}>
+              {splitUsers.slice(0, 5).map((user, index) => {
+                const label = user?.name || user?.email || `M${index + 1}`;
+                const initials =
+                  label
                     .split(" ")
+                    .filter(Boolean)
                     .map((n) => n[0])
                     .join("")
                     .toUpperCase()
-                    .slice(0, 2) || user.email.charAt(0).toUpperCase();
-                  return (
-                    <View key={`${user.email}-${index}`} style={[styles.avatar, index === 0 && { marginLeft: 0 }]}>
-                      <Text style={styles.avatarText}>{initials}</Text>
-                    </View>
-                  );
-                })}
-                {splitUsers.length > 4 && (
-                  <View style={[styles.avatar, { marginLeft: -8 }]}>
-                    <Text style={styles.avatarText}>+{splitUsers.length - 4}</Text>
+                    .slice(0, 2) || "?";
+
+                return (
+                  <View
+                    key={`${user.email}-${index}`}
+                    style={[styles.stackAvatar, index === 0 ? { marginLeft: 0 } : null]}
+                  >
+                    {user.photoURL ? (
+                      <Image source={{ uri: user.photoURL }} style={styles.stackAvatarImage} />
+                    ) : (
+                      <Text style={styles.stackAvatarText}>{initials}</Text>
+                    )}
                   </View>
-                )}
-              </View>
+                );
+              })}
+              {splitUsers.length > 5 && (
+                <View style={[styles.stackAvatar, { marginLeft: -10 }]}>
+                  <Text style={styles.stackAvatarText}>+{splitUsers.length - 5}</Text>
+                </View>
+              )}
             </View>
-          )}
-        </View>
+          </View>
+        )}
       </View>
       <View style={styles.rightContainer}>
-        <Text style={[styles.amount, isSplit && styles.splitText]}>{amount}</Text>
+        <Text style={styles.amount}>{amount}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -230,9 +205,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: Colors.BUTTON_COLOR,
   },
-  splitContainer: {
-    opacity: 0.7,
-  },
   checkbox: {
     marginRight: 10,
   },
@@ -248,12 +220,8 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginVertical: 4,
   },
-  splitText: {
-    textDecorationLine: "line-through",
-    opacity: 0.6,
-  },
   amount: {
-    fontSize: 16,
+    fontSize: 24,
     color: "green",
     fontWeight: 'bold'
   },
@@ -287,43 +255,41 @@ const styles = StyleSheet.create({
     color: Colors.BUTTON_COLOR,
     fontWeight: "600",
   },
-  addedBy: {
-    fontSize: 14,
-    color: "gray",
-  },
-  spentByContainer: {
-    marginTop: 4,
-  },
-  splitUsersContainer: {
+  splitRow: {
     flexDirection: "row",
     alignItems: "center",
     marginTop: 6,
-    gap: 6,
+    gap: 10,
+    flexWrap: "wrap",
   },
   splitWithLabel: {
     fontSize: 12,
     color: Colors.BUTTON_COLOR,
     fontWeight: "600",
   },
-  avatarContainer: {
+  avatarStack: {
     flexDirection: "row",
-    alignItems: "center",
   },
-  avatar: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+  stackAvatar: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     backgroundColor: Colors.BUTTON_COLOR,
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 2,
+    overflow: "hidden",
+    borderWidth: 1,
     borderColor: Colors.WHITE,
-    marginLeft: -8,
+    marginLeft: -10,
   },
-  avatarText: {
+  stackAvatarImage: {
+    width: "100%",
+    height: "100%",
+  },
+  stackAvatarText: {
     fontSize: 9,
     color: Colors.WHITE,
-    fontWeight: "600",
+    fontWeight: "700",
   },
 });
 
