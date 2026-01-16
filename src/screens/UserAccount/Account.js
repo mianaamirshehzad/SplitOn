@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   collection,
   doc,
@@ -35,7 +35,7 @@ import { Screens } from "../../assets/constants/screens";
 import ExpenseItem from "../../components/ExpenseItem";
 import { MaterialIcons } from "@expo/vector-icons";
 import Group from "../../components/Group";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import ProfilePhotoPicker from "../../components/ProfilePhotoPicker";
 
 const Account = (props) => {
@@ -298,14 +298,14 @@ const Account = (props) => {
     }
   };
 
-
-  useEffect(() => {
-    setLoading(true);
-    getUserProfile();
-    getMyExpenses();
-    getJoinedGroups();
-    setLoading(false);
-  }, [userEmail]);
+  useFocusEffect(
+    React.useCallback(() => {
+      if (!userEmail) return;
+      getUserProfile();
+      getMyExpenses();
+      getJoinedGroups();
+    }, [userEmail])
+  );
 
   const logoutUser = async () => {
     try {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   StyleSheet,
   View,
@@ -67,10 +67,6 @@ const Groups = () => {
   };
 
   
-
-  useEffect(() => {
-    fetchGroups();
-  }, []);
 
   useFocusEffect(
     React.useCallback(() => {
