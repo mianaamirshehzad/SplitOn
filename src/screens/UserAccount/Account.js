@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import {
   Alert,
   FlatList,
@@ -9,7 +10,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import React, { useState } from "react";
 import {
   collection,
   doc,
@@ -62,6 +62,9 @@ const Account = (props) => {
   const [allExpenses, setAllExpenses] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
   const [totalExpenses, setTotalExpenses] = useState(0);
+  const [payables, setPayables] = useState([]); // expenses where user owes a share
+  const [totalToPay, setTotalToPay] = useState(0);
+  const [paidByNames, setPaidByNames] = useState({}); // email -> name map
   
   // Joined groups state
   const [joinedGroups, setJoinedGroups] = useState([]);
@@ -207,6 +210,74 @@ const Account = (props) => {
     }
   };
 
+  const getMyPayables = async () => {
+    if (!userEmail) return;
+
+    try {
+      // Expenses where current user is included in splitWith
+      // NOTE: Avoid orderBy(...) here to prevent composite index requirements.
+      const q = query(collection(db, "expenses"), where("splitWith", "array-contains", userEmail));
+      const snap = await getDocs(q);
+
+      const items = snap.docs
+        .map((d) => ({ ...d.data(), id: d.id }))
+        .filter((e) => {
+          // Only where someone else paid
+          const paidBy = e.paidBy || e.addedBy;
+          return paidBy && paidBy !== userEmail;
+        })
+        .map((e) => {
+          const splitCount = Array.isArray(e.splitWith) ? e.splitWith.length : 0;
+          const amountNum = Number(e.amount) || 0;
+          const myShare = splitCount > 0 ? amountNum / splitCount : 0;
+          return {
+            ...e,
+            paidBy: e.paidBy || e.addedBy,
+            myShare,
+          };
+        })
+        .sort((a, b) => {
+          const dateA = a.date?.seconds || (a.date?.toDate ? a.date.toDate().getTime() : 0);
+          const dateB = b.date?.seconds || (b.date?.toDate ? b.date.toDate().getTime() : 0);
+          return dateB - dateA;
+        });
+
+      const total = items.reduce((sum, e) => sum + (Number(e.myShare) || 0), 0);
+      setPayables(items);
+      setTotalToPay(total);
+
+      // Resolve payer names (email -> name) for display
+      const uniquePayers = Array.from(
+        new Set(items.map((e) => e.paidBy).filter(Boolean))
+      );
+      const namesMap = {};
+      await Promise.all(
+        uniquePayers.map(async (email) => {
+          try {
+            const usersRef = collection(db, "users");
+            const uq = query(usersRef, where("email", "==", email));
+            const usnap = await getDocs(uq);
+            if (!usnap.empty) {
+              const userData = usnap.docs[0].data();
+              namesMap[email] = userData.name || email;
+            } else {
+              namesMap[email] = email;
+            }
+          } catch (e) {
+            namesMap[email] = email;
+          }
+        })
+      );
+      setPaidByNames(namesMap);
+    } catch (error) {
+      console.error("Error fetching payables:", error);
+      // Don't block the whole screen if this fails
+      setPayables([]);
+      setTotalToPay(0);
+      setPaidByNames({});
+    }
+  };
+
   const getJoinedGroups = async () => {
     if (!userEmail) return;
     
@@ -234,6 +305,7 @@ const Account = (props) => {
       if (!userEmail) return;
       getUserProfile();
       getMyExpenses();
+      getMyPayables();
       getJoinedGroups();
     }, [userEmail])
   );
@@ -266,6 +338,7 @@ const Account = (props) => {
     setRefreshing(true);
     getUserProfile();
     getMyExpenses();
+    getMyPayables();
     getJoinedGroups();
   };
 
@@ -409,7 +482,78 @@ const Account = (props) => {
               <Text style={styles.statValue}>Rs.{totalAmount.toFixed(2)}</Text>
               <Text style={styles.statLabel}>Total Spent</Text>
             </View>
+            <View style={styles.statCard}>
+              <Text style={styles.statValue}>Rs.{totalToPay.toFixed(2)}</Text>
+              <Text style={styles.statLabel}>To Pay</Text>
+            </View>
           </View>
+        </View>
+
+                {/* Expenses Section */}
+                <View style={styles.expensesSection}>
+          <Text style={styles.sectionTitle}>My Expenses</Text>
+          {loading && !refreshing && <Spinner animating={loading} />}
+          {allExpenses.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <MaterialIcons name="receipt-long" size={50} color={Colors.BUTTON_COLOR} />
+              <Text style={styles.emptyText}>No expenses yet</Text>
+            </View>
+          ) : (
+            <View style={styles.fixedListContainer}>
+              <FlatList
+                data={allExpenses}
+                keyExtractor={(item, index) => item.id || index.toString()}
+                renderItem={({ item }) => (
+                  <ExpenseItem
+                    id={item.id}
+                    addedBy={item.addedBy}
+                    description={item.description}
+                    amount={item.amount}
+                    date={item.date}
+                    isSplit={item.isSplit}
+                    splitWith={item.splitWith || []}
+                  />
+                )}
+                nestedScrollEnabled
+                showsVerticalScrollIndicator={true}
+              />
+            </View>
+          )}
+        </View>
+
+        {/* To Pay Section */}
+        <View style={styles.expensesSection}>
+          <Text style={styles.sectionTitle}>To Pay</Text>
+          {payables.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <MaterialIcons name="account-balance-wallet" size={50} color={Colors.BUTTON_COLOR} />
+              <Text style={styles.emptyText}>Nothing to pay</Text>
+            </View>
+          ) : (
+            <View style={styles.fixedListContainer}>
+              <FlatList
+                data={payables}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                  <View style={styles.payableRow}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.payableTitle} numberOfLines={1}>
+                        {item.description || "Expense"}
+                      </Text>
+                      <Text style={styles.payableSubText} numberOfLines={1}>
+                        Paid by {paidByNames[item.paidBy] || item.paidBy}
+                      </Text>
+                    </View>
+                    <Text style={styles.payableAmount}>
+                      Rs.{(Number(item.myShare) || 0).toFixed(2)}
+                    </Text>
+                  </View>
+                )}
+                nestedScrollEnabled
+                showsVerticalScrollIndicator={true}
+              />
+            </View>
+          )}
         </View>
 
         {/* Joined Groups Section */}
@@ -443,34 +587,7 @@ const Account = (props) => {
           )}
         </View>
 
-        {/* Expenses Section */}
-        <View style={styles.expensesSection}>
-          <Text style={styles.sectionTitle}>My Expenses</Text>
-          {loading && !refreshing && <Spinner animating={loading} />}
-          {allExpenses.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <MaterialIcons name="receipt-long" size={50} color={Colors.BUTTON_COLOR} />
-              <Text style={styles.emptyText}>No expenses yet</Text>
-            </View>
-          ) : (
-            <FlatList
-              data={allExpenses}
-              keyExtractor={(item, index) => item.id || index.toString()}
-              renderItem={({ item }) => (
-                <ExpenseItem
-                  id={item.id}
-                  addedBy={item.addedBy}
-                  description={item.description}
-                  amount={item.amount}
-                  date={item.date}
-                  isSplit={item.isSplit}
-                  splitWith={item.splitWith || []}
-                />
-              )}
-              scrollEnabled={false}
-            />
-          )}
-        </View>
+
       </ScrollView>
     </View>
   );
@@ -587,9 +704,11 @@ const styles = StyleSheet.create({
   statsContainer: {
     flexDirection: "row",
     gap: 10,
+    flexWrap: "wrap",
   },
   statCard: {
     flex: 1,
+    minWidth: 110,
     backgroundColor: Colors.WHITE,
     borderRadius: 15,
     padding: 20,
@@ -630,6 +749,39 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
     color: "#666",
+  },
+  fixedListContainer: {
+    height: 250,
+  },
+  payableRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.WHITE,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginBottom: 8,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+  },
+  payableTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: Colors.BLACK,
+  },
+  payableSubText: {
+    fontSize: 12,
+    color: "#666",
+    marginTop: 2,
+  },
+  payableAmount: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: Colors.BUTTON_COLOR,
+    marginLeft: 10,
   },
   cornerTop: {
     left: -50,
