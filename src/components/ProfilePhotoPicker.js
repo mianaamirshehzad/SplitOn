@@ -121,11 +121,10 @@ const ProfilePhotoPicker = ({
   return (
     <TouchableOpacity
       style={[
-        styles.avatarContainer,
+        styles.avatarWrapper,
         {
           width: size,
           height: size,
-          borderRadius: size / 2,
         },
       ]}
       onPress={pickAndUpload}
@@ -134,11 +133,22 @@ const ProfilePhotoPicker = ({
       accessibilityRole="button"
       accessibilityLabel="Change profile photo"
     >
-      {photoURL ? (
-        <Image source={{ uri: photoURL }} style={styles.avatarImage} />
-      ) : (
-        <Text style={[styles.avatarText, { fontSize: Math.max(18, Math.floor(size * 0.4)) }]}>{initials}</Text>
-      )}
+      <View
+        style={[
+          styles.avatarCircle,
+          {
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+          },
+        ]}
+      >
+        {photoURL ? (
+          <Image source={{ uri: photoURL }} style={styles.avatarImage} />
+        ) : (
+          <Text style={[styles.avatarText, { fontSize: Math.max(18, Math.floor(size * 0.4)) }]}>{initials}</Text>
+        )}
+      </View>
 
       <View style={styles.cameraBadge}>
         {uploading ? (
@@ -152,7 +162,13 @@ const ProfilePhotoPicker = ({
 };
 
 const styles = StyleSheet.create({
-  avatarContainer: {
+  avatarWrapper: {
+    position: "relative",
+    overflow: "visible",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  avatarCircle: {
     backgroundColor: Colors.BUTTON_COLOR,
     justifyContent: "center",
     alignItems: "center",
@@ -168,8 +184,8 @@ const styles = StyleSheet.create({
   },
   cameraBadge: {
     position: "absolute",
-    right: -2,
-    bottom: -2,
+    right: 0,
+    bottom: 0,
     width: 28,
     height: 28,
     borderRadius: 14,
@@ -178,6 +194,8 @@ const styles = StyleSheet.create({
     borderColor: Colors.WHITE,
     alignItems: "center",
     justifyContent: "center",
+    zIndex: 10,
+    elevation: 10,
   },
 });
 
