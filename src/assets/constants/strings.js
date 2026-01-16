@@ -12,5 +12,4 @@ export const Strings = {
   GROUPS: "Groups",
   CREATE_OWN_GROUP: "Create Your Own Group",
   GROUP_DETAILS: "GroupDetails",
-  SPLIT_GROUP_EXPENSE: "SplitGroupExpense"
 };

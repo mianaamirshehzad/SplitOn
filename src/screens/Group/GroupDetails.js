@@ -11,7 +11,6 @@ import {
   TextInput,
   RefreshControl,
   Image,
-  Switch,
   Modal,
 } from "react-native";
 // import firestore from '@react-native-firebase/firestore';
@@ -42,7 +41,6 @@ import { getAuth } from "firebase/auth";
 import ExpenseModal from "../../components/ExpenseModal";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Screens } from "../../assets/constants/screens";
-import ExpenseCalculatorModal from "../../components/ExpenseCalculatorModal";
 import Login from "../Authentication/Login";
 
 const GroupDetails = ({ route }) => {
@@ -54,7 +52,6 @@ const GroupDetails = ({ route }) => {
   const db = getFirestore(app);
 
   const [modalVisible, setModalVisible] = useState(false);
-  const [showCalculateModal, setShowCalculateModal] = useState(false);
   const [allExpenses, setAllExpenses] = useState([]);
   const [filteredExpenses, setFilteredExpenses] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -70,10 +67,7 @@ const GroupDetails = ({ route }) => {
   const [showModal, setShowModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [totalAmount, setTotalAmount] = useState(0);
-  const [isEnabled, setIsEnabled] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
-  const [isSelectMode, setIsSelectMode] = useState(false);
-  const [selectedExpenseIds, setSelectedExpenseIds] = useState([]);
 
   const getUserExpenses = async () => {
     setRefreshing(true);
@@ -105,24 +99,10 @@ const GroupDetails = ({ route }) => {
 
   const calculateTotal = () => {
     let total = 0;
-    // Only calculate total from unsplit expenses
     allExpenses?.forEach((value) => {
-      if (!value.isSplit) {
-        total += Number(value.amount) || 0;
-      }
+      total += Number(value.amount) || 0;
     });
     setTotalAmount(total);
-  };
-
-  const calculateSelectedTotal = () => {
-    let total = 0;
-    selectedExpenseIds.forEach((expenseId) => {
-      const expense = allExpenses.find((e) => e.id === expenseId);
-      if (expense && !expense.isSplit) {
-        total += Number(expense.amount) || 0;
-      }
-    });
-    return total;
   };
 
   // Recalculate total whenever allExpenses changes
@@ -191,76 +171,6 @@ const GroupDetails = ({ route }) => {
     );
   };
 
-  const toggleSwitch = (value) => {
-    setIsEnabled(value);
-    if (value) {
-      // Enable selection mode instead of opening modal immediately
-      setIsSelectMode(true);
-      setSelectedExpenseIds([]);
-    } else {
-      // Disable selection mode
-      setIsSelectMode(false);
-      setSelectedExpenseIds([]);
-    }
-  };
-
-  const handleExpenseSelect = (expenseId) => {
-    setSelectedExpenseIds((prev) => {
-      if (prev.includes(expenseId)) {
-        return prev.filter((id) => id !== expenseId);
-      } else {
-        return [...prev, expenseId];
-      }
-    });
-  };
-
-  const handleSplitSelected = () => {
-    if (selectedExpenseIds.length === 0) {
-      Alert.alert("No Selection", "Please select at least one expense to split.");
-      return;
-    }
-    // Filter out already split expenses
-    const unsplitSelected = selectedExpenseIds.filter((id) => {
-      const expense = allExpenses.find((e) => e.id === id);
-      return expense && !expense.isSplit;
-    });
-    
-    if (unsplitSelected.length === 0) {
-      Alert.alert("Already Split", "Selected expenses have already been split.");
-      return;
-    }
-    
-    setSelectedExpenseIds(unsplitSelected);
-    setShowCalculateModal(true);
-  };
-
-  const handleSplitComplete = async () => {
-    // Mark selected expenses as split
-    try {
-      const updatePromises = selectedExpenseIds.map((expenseId) => {
-        const expenseRef = doc(db, "expenses", expenseId);
-        return updateDoc(expenseRef, {
-          isSplit: true,
-          splitDate: serverTimestamp(),
-          splitBy: userEmail,
-        });
-      });
-      
-      await Promise.all(updatePromises);
-      
-      // Refresh expenses and reset selection
-      await getUserExpenses();
-      setSelectedExpenseIds([]);
-      setIsSelectMode(false);
-      setIsEnabled(false);
-      setShowCalculateModal(false);
-      
-      Alert.alert("Success", "Expenses have been split successfully!");
-    } catch (error) {
-      console.error("Error marking expenses as split:", error);
-      Alert.alert("Error", "Failed to mark expenses as split.");
-    }
-  };
 
   const expenseDeletor = async (item) => {
     setSelection(false);
