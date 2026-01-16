@@ -5,6 +5,7 @@ export const Strings = {
   SIGNUP: "Signup",
   FORGOT: "Forgot",
   ACCOUNT: "Account",
+  NOTIFICATIONS: "Notifications",
   ADD_AMOUNT: "AddAmount",
   ADD_EXPENSE: "+ Add Expense",
   BOTTOM_TAB: "BottomTab",

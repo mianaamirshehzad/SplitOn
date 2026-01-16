@@ -14,6 +14,8 @@ import {
   Platform,
 } from "react-native";
 import { addDoc, collection, getFirestore, doc, getDoc, query, where, getDocs } from "firebase/firestore";
+import { sendSplitExpenseNotificationAsync } from "../utils/pushNotifications";
+import { createInAppNotificationsForSplitExpense } from "../utils/inAppNotifications";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import dayjs from 'dayjs';
 import { MaterialIcons } from "@expo/vector-icons";
@@ -40,7 +42,7 @@ const ExpenseModal = ({ isVisible, onClose, fetchLatestData, id, groupMembers = 
   const [description, setDescription] = useState("");
   const [date, setDate] = useState(dayjs());
   const [paidBy, setPaidBy] = useState(userEmail);
-  const [isSplitEnabled, setIsSplitEnabled] = useState(false);
+  const [isSplitEnabled, setIsSplitEnabled] = useState(true);
   const [selectedSplitMembers, setSelectedSplitMembers] = useState([]);
   const [memberNames, setMemberNames] = useState({});
 
@@ -122,6 +124,55 @@ const ExpenseModal = ({ isVisible, onClose, fetchLatestData, id, groupMembers = 
 
       const expenseRef = await addDoc(collection(db, "expenses"), expenseData);
       console.log("Expense saved with ID: ", expenseRef.id);
+
+      // Notify split members (best-effort)
+      try {
+        if (expenseData.isSplit && Array.isArray(expenseData.splitWith) && expenseData.splitWith.length > 0) {
+          let groupName = "your group";
+          if (groupId) {
+            const g = await getDoc(doc(db, "groups", groupId));
+            if (g.exists()) groupName = g.data()?.groupName || groupName;
+          }
+
+          const paidByName = memberNames[expenseData.paidBy] || "A group member";
+          const title = `New expense in ${groupName}`;
+          const body = `${paidByName} added "${expenseData.description}" (Rs.${expenseData.amount}).`;
+
+          // In-app notifications (Firestore)
+          await createInAppNotificationsForSplitExpense({
+            db,
+            recipientEmails: expenseData.splitWith,
+            excludeEmail: expenseData.paidBy,
+            title,
+            body,
+            data: {
+              type: "split_expense",
+              expenseId: expenseRef.id,
+              groupId: groupId || null,
+              groupName,
+              paidByEmail: expenseData.paidBy,
+              paidByName,
+              description: expenseData.description,
+              amount: expenseData.amount,
+            },
+          });
+
+          await sendSplitExpenseNotificationAsync({
+            db,
+            recipientEmails: expenseData.splitWith,
+            excludeEmail: expenseData.paidBy,
+            title,
+            body,
+            data: {
+              type: "split_expense",
+              expenseId: expenseRef.id,
+              groupId: groupId || null,
+            },
+          });
+        }
+      } catch (e) {
+        console.error("Failed to send split notifications:", e);
+      }
 
       // Save the document locally using AsyncStorage upon successful upload
       let localExpenses = [];
@@ -214,8 +265,14 @@ const ExpenseModal = ({ isVisible, onClose, fetchLatestData, id, groupMembers = 
       setAmount("");
       setDescription("");
       setPaidBy(userEmail);
-      setIsSplitEnabled(false);
-      setSelectedSplitMembers([]);
+      setIsSplitEnabled(true);
+      // Default: split with all group members
+      const defaultEmails = Array.isArray(groupMembers)
+        ? groupMembers
+            .map((m) => (typeof m === "string" ? m : m?.email || m))
+            .filter(Boolean)
+        : [];
+      setSelectedSplitMembers(defaultEmails);
       setDatePickerVisibility(false);
       setShowPaidByDropdown(false);
       setShowSplitMembersDropdown(false);
@@ -376,8 +433,14 @@ const ExpenseModal = ({ isVisible, onClose, fetchLatestData, id, groupMembers = 
                       ios_backgroundColor="#3e3e3e"
                       onValueChange={(value) => {
                         setIsSplitEnabled(value);
-                        if (!value) {
-                          setSelectedSplitMembers([]);
+                        if (!value) setSelectedSplitMembers([]);
+                        if (value) {
+                          const defaultEmails = Array.isArray(groupMembers)
+                            ? groupMembers
+                                .map((m) => (typeof m === "string" ? m : m?.email || m))
+                                .filter(Boolean)
+                            : [];
+                          setSelectedSplitMembers(defaultEmails);
                         }
                         setShowSplitMembersDropdown(false);
                       }}
@@ -456,7 +519,11 @@ const ExpenseModal = ({ isVisible, onClose, fetchLatestData, id, groupMembers = 
                     <Spinner loading={loading} />
                   ) : (
                     <CustomButton
-                      name={Strings.ADD_EXPENSE}
+                      name={
+                        isSplitEnabled
+                          ? `Split On ${selectedSplitMembers.length}`
+                          : "Split On"
+                      }
                       onPress={addExpenseToAccount}
                       disabled={
                         !amount.trim() ||

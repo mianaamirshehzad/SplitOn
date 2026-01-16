@@ -60,7 +60,7 @@ function BottomTab() {
       />
       <Tab.Screen
         name={Strings.ACCOUNT}
-        component={Screens.ACCOUNT_SCREEN}
+        component={Screens.ACCOUNT_STACK}
         options={{
           headerShown: false,
           tabBarIcon: ({ focused, color, size }) => (

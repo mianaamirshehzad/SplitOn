@@ -48,3 +48,23 @@ export const AuthenticationStack = () => {
     </Stack.Navigator>
   );
 };
+
+export const AccountStack = () => {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name={Strings.ACCOUNT}
+        component={Screens.ACCOUNT_SCREEN}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Strings.NOTIFICATIONS}
+        component={Screens.NOTIFICATIONS_SCREEN}
+        options={{
+          headerShown: true,
+          title: "Notifications",
+        }}
+      />
+    </Stack.Navigator>
+  );
+};

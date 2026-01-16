@@ -4,6 +4,7 @@ import BottomTab from "./BottomTab";
 import { NavigationContainer } from "@react-navigation/native";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { AuthenticationStack } from "../navigation/index";
+import { registerAndSavePushTokenAsync } from "../utils/pushNotifications";
 
 const RootNavigator = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -14,6 +15,10 @@ const RootNavigator = () => {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setIsLoggedIn(!!user);
+      if (user?.email) {
+        // Best-effort: don't block UI if this fails
+        registerAndSavePushTokenAsync(user.email).catch(() => {});
+      }
     });
     // Return the cleanup function to unsubscribe
     return () => unsubscribe();

@@ -36,6 +36,8 @@ import { MaterialIcons } from "@expo/vector-icons";
 import Group from "../../components/Group";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import ProfilePhotoPicker from "../../components/ProfilePhotoPicker";
+import { fetchInAppNotificationsForUser, markNotificationRead } from "../../utils/inAppNotifications";
+import { Strings } from "../../assets/constants/strings";
 
 const Account = (props) => {
   const auth = getAuth(app);
@@ -65,6 +67,8 @@ const Account = (props) => {
   const [payables, setPayables] = useState([]); // expenses where user owes a share
   const [totalToPay, setTotalToPay] = useState(0);
   const [paidByNames, setPaidByNames] = useState({}); // email -> name map
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   
   // Joined groups state
   const [joinedGroups, setJoinedGroups] = useState([]);
@@ -300,12 +304,24 @@ const Account = (props) => {
     }
   };
 
+  const getMyNotifications = async () => {
+    if (!userEmail) return;
+    try {
+      const items = await fetchInAppNotificationsForUser(db, userEmail);
+      setUnreadCount(items.filter((n) => !n.read).length);
+    } catch (e) {
+      console.error("Error fetching notifications:", e);
+      setUnreadCount(0);
+    }
+  };
+
   useFocusEffect(
     React.useCallback(() => {
       if (!userEmail) return;
       getUserProfile();
       getMyExpenses();
       getMyPayables();
+      getMyNotifications();
       getJoinedGroups();
     }, [userEmail])
   );
@@ -339,6 +355,7 @@ const Account = (props) => {
     getUserProfile();
     getMyExpenses();
     getMyPayables();
+    getMyNotifications();
     getJoinedGroups();
   };
 
@@ -378,14 +395,29 @@ const Account = (props) => {
       >
         <View style={styles.titleContainer}>
           <Text style={GlobalStyles.title}>My Account</Text>
-          <TouchableOpacity
-            style={styles.logoutIconButton}
-            onPress={logoutUser}
-            accessibilityRole="button"
-            accessibilityLabel="Logout"
-          >
-            <MaterialIcons name="logout" size={24} color={Colors.BUTTON_COLOR} />
-          </TouchableOpacity>
+          <View style={styles.topIconsRow}>
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() => navigation.navigate(Strings.NOTIFICATIONS)}
+              accessibilityRole="button"
+              accessibilityLabel="Notifications"
+            >
+              <MaterialIcons name="notifications" size={24} color={Colors.BUTTON_COLOR} />
+              {unreadCount > 0 && (
+                <View style={styles.iconBadge}>
+                  <Text style={styles.iconBadgeText}>{unreadCount}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={logoutUser}
+              accessibilityRole="button"
+              accessibilityLabel="Logout"
+            >
+              <MaterialIcons name="logout" size={24} color={Colors.BUTTON_COLOR} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* User Profile Section */}
@@ -609,7 +641,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingBottom: 10,
   },
-  logoutIconButton: {
+  topIconsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  iconButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -621,6 +658,23 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
+  },
+  iconBadge: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: Colors.BUTTON_COLOR,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 4,
+  },
+  iconBadgeText: {
+    color: Colors.WHITE,
+    fontSize: 10,
+    fontWeight: "800",
   },
   profileSection: {
     backgroundColor: Colors.WHITE,
