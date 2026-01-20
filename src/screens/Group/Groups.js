@@ -79,8 +79,8 @@ const Groups = () => {
       <View style={styles.contentContainer}>
         <Corner />
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>New Group</Text>
-          <Text style={styles.subtitle}>Document your expense</Text>
+          <Text style={styles.title}>Split with Groups</Text>
+          <Text style={styles.subtitle}>Create a group, add expenses, and settle up</Text>
         </View>
         {loading ? (
           <Loading />

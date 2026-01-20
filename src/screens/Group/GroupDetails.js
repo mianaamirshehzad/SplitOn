@@ -266,6 +266,7 @@ const GroupDetails = ({ route }) => {
             </Text>
           </View>
         ),
+        headerTintColor: Colors.WHITE, // back arrow + back label
         headerRight: () => (
           <TouchableOpacity onPress={() => setShowSettingsModal(true)}>
             <Ionicons name="settings-outline" size={24} color="white" />
@@ -380,12 +381,12 @@ const GroupDetails = ({ route }) => {
         </View>
       ) : (
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>Summary </Text>
+          <Text style={styles.title}>Overview</Text>
           <View
             style={[styles.inputWrapper, { justifyContent: "space-between" }]}
           >
             <Text style={styles.subtitle}>
-              Rs.{totalAmount.toFixed(2)} are spent in {groupName}
+              Total spent in {groupName}: Rs.{totalAmount.toFixed(2)}
             </Text>
           </View>
           <View style={styles.searchContainer}>
@@ -545,7 +546,7 @@ const styles = StyleSheet.create({
   },
   headerSubtitle: {
     fontSize: 14,
-    color: "black",
+    color: Colors.WHITE,
   },
   titleContainer: {
     paddingTop: 0,
