@@ -33,6 +33,7 @@ const { height } = Dimensions.get("window");
 
 const ExpenseModal = ({ isVisible, onClose, fetchLatestData, id, groupMembers = [] }) => {
   const modalAnimation = useRef(new Animated.Value(0)).current;
+  const scrollViewRef = useRef(null);
   const auth = getAuth(app);
   const userEmail = auth.currentUser ? auth.currentUser.email : null;
   const user = auth.currentUser;
@@ -266,13 +267,8 @@ const ExpenseModal = ({ isVisible, onClose, fetchLatestData, id, groupMembers = 
       setDescription("");
       setPaidBy(userEmail);
       setIsSplitEnabled(true);
-      // Default: split with all group members
-      const defaultEmails = Array.isArray(groupMembers)
-        ? groupMembers
-            .map((m) => (typeof m === "string" ? m : m?.email || m))
-            .filter(Boolean)
-        : [];
-      setSelectedSplitMembers(defaultEmails);
+      // Don't auto-select members; user must explicitly choose split members
+      setSelectedSplitMembers([]);
       setDatePickerVisibility(false);
       setShowPaidByDropdown(false);
       setShowSplitMembersDropdown(false);
@@ -283,6 +279,16 @@ const ExpenseModal = ({ isVisible, onClose, fetchLatestData, id, groupMembers = 
       modalAnimation.setValue(0);
     }
   }, [isVisible, userEmail]);
+
+  // Ensure dropdowns aren't clipped by the bottom of the modal
+  useEffect(() => {
+    if (showSplitMembersDropdown) {
+      // Let layout settle, then scroll down a bit
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd?.({ animated: true });
+      }, 50);
+    }
+  }, [showSplitMembersDropdown]);
 
   return (
     <Modal transparent visible={isVisible} animationType="fade">
@@ -331,8 +337,12 @@ const ExpenseModal = ({ isVisible, onClose, fetchLatestData, id, groupMembers = 
                 <MaterialIcons name="close" size={25} color={Colors.WHITE} />
               </TouchableOpacity>
               <ScrollView
+                ref={scrollViewRef}
                 style={styles.scrollView}
-                contentContainerStyle={styles.scrollViewContent}
+                contentContainerStyle={[
+                  styles.scrollViewContent,
+                  (showPaidByDropdown || showSplitMembersDropdown) && styles.scrollViewContentDropdownOpen,
+                ]}
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
               >
@@ -351,6 +361,8 @@ const ExpenseModal = ({ isVisible, onClose, fetchLatestData, id, groupMembers = 
                     placeholder="Rs."
                     value={amount}
                     onChangeText={(text) => setAmount(text)}
+                    containerStyle={styles.fieldContainerFullWidth}
+                    inputStyle={styles.fieldInputFullWidth}
                   />
                 </View>
 
@@ -362,6 +374,8 @@ const ExpenseModal = ({ isVisible, onClose, fetchLatestData, id, groupMembers = 
                     value={description}
                     placeholder="Expense details..."
                     onChangeText={(text) => setDescription(text)}
+                    containerStyle={styles.fieldContainerFullWidth}
+                    inputStyle={styles.fieldInputFullWidth}
                   />
                 </View>
 
@@ -371,11 +385,18 @@ const ExpenseModal = ({ isVisible, onClose, fetchLatestData, id, groupMembers = 
                     date={date && typeof date.format === 'function' ? date.format("DD-MM-YYYY HH:mm") : ""}
                     title="Date & Time"
                     showDatePicker={showDatePicker}
+                    containerStyle={styles.fieldContainerFullWidth}
+                    inputStyle={styles.fieldInputFullWidth}
                   />
                 </View>
 
                 {/* Paid By Dropdown */}
-                <View style={styles.dropdownContainer}>
+                <View
+                  style={[
+                    styles.dropdownContainer,
+                    showPaidByDropdown && styles.dropdownContainerOpen,
+                  ]}
+                >
                   <Text style={styles.dropdownTitle}>Paid By</Text>
                   <TouchableOpacity
                     style={styles.dropdownButton}
@@ -434,14 +455,7 @@ const ExpenseModal = ({ isVisible, onClose, fetchLatestData, id, groupMembers = 
                       onValueChange={(value) => {
                         setIsSplitEnabled(value);
                         if (!value) setSelectedSplitMembers([]);
-                        if (value) {
-                          const defaultEmails = Array.isArray(groupMembers)
-                            ? groupMembers
-                                .map((m) => (typeof m === "string" ? m : m?.email || m))
-                                .filter(Boolean)
-                            : [];
-                          setSelectedSplitMembers(defaultEmails);
-                        }
+                        // If enabled, keep selection empty until user chooses members
                         setShowSplitMembersDropdown(false);
                       }}
                       value={isSplitEnabled}
@@ -451,7 +465,12 @@ const ExpenseModal = ({ isVisible, onClose, fetchLatestData, id, groupMembers = 
 
                 {/* Split Members Selection */}
                 {isSplitEnabled && (
-                  <View style={styles.dropdownContainer}>
+                  <View
+                    style={[
+                      styles.dropdownContainer,
+                      showSplitMembersDropdown && styles.dropdownContainerOpen,
+                    ]}
+                  >
                     <Text style={styles.dropdownTitle}>Split with</Text>
                     <TouchableOpacity
                       style={styles.dropdownButton}
@@ -558,6 +577,7 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: "center",
     maxHeight: height * 0.9, // Limit modal height
+    overflow: "visible",
   },
   scrollView: {
     width: "100%",
@@ -565,7 +585,11 @@ const styles = StyleSheet.create({
   scrollViewContent: {
     width: "100%",
     paddingBottom: 20,
-
+    overflow: "visible",
+  },
+  scrollViewContentDropdownOpen: {
+    // Extra space so dropdown lists can be fully visible within the modal bounds
+    paddingBottom: 280,
   },
   titleContainer: {
     marginBottom: 20,
@@ -630,11 +654,17 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   dropdownContainer: {
-    width: "95%",
+    width: "100%",
     alignSelf: "center",
     marginBottom: 15,
     zIndex: 1,
-    padding: 5,
+    padding: 0,
+    position: "relative",
+    overflow: "visible",
+  },
+  dropdownContainerOpen: {
+    zIndex: 5000,
+    elevation: 5000,
   },
   dropdownTitle: {
     fontSize: 16,
@@ -652,8 +682,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     height: 50,
     padding: 15,
-    margin: 5,
+    marginVertical: 5,
     backgroundColor: Colors.WHITE,
+    width: "100%",
   },
   dropdownButtonText: {
     fontSize: 15,
@@ -670,12 +701,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginTop: 4,
     maxHeight: 200,
-    elevation: 5,
+    elevation: 9999,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
-    zIndex: 1000,
+    zIndex: 9999,
   },
   dropdownScrollView: {
     maxHeight: 200,
@@ -697,10 +728,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   splitToggleContainer: {
-    width: "95%",
+    width: "100%",
     alignSelf: "center",
     marginBottom: 15,
-    padding: 5,
+    padding: 0,
+  },
+  fieldContainerFullWidth: {
+    width: "100%",
+    padding: 0,
+  },
+  fieldInputFullWidth: {
+    marginHorizontal: 0,
   },
   splitToggleRow: {
     flexDirection: "row",

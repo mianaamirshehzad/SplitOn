@@ -70,7 +70,7 @@ const Groups = () => {
 
   useFocusEffect(
     React.useCallback(() => {
-      fetchGroups();
+    fetchGroups();
     }, [])
   );
 

@@ -14,7 +14,7 @@ import { Images } from "../assets/constants/images";
 const CustomInput = forwardRef((props, ref) => {
   
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, props.containerStyle]}>
       {props.showTitle && (
         <View style={styles.textContainer}>
           <Text style={styles.text}>{props.title}</Text>
@@ -22,7 +22,14 @@ const CustomInput = forwardRef((props, ref) => {
       )}
       <View style={styles.inputContainer}>
         {props.showDatePicker ? (
-          <View style={[styles.dateContainer, styles.input, { padding: 0 }]}>
+          <View
+            style={[
+              styles.dateContainer,
+              styles.input,
+              props.inputStyle,
+              { padding: 0 },
+            ]}
+          >
             <View style={styles.date}>
               <Text>{props.date}</Text>
             </View>
@@ -40,7 +47,7 @@ const CustomInput = forwardRef((props, ref) => {
           <TextInput
             ref={ref}
             placeholder={props.placeholder}
-            style={[props.style, styles.input]}
+            style={[props.style, styles.input, props.inputStyle]}
             secureTextEntry={props.secureTextEntry}
             onChangeText={(t) => props.onChangeText(t)}
             value={props.value}

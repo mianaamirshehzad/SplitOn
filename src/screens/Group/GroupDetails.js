@@ -88,6 +88,39 @@ const GroupDetails = ({ route }) => {
         temp.push(merge);
       });
 
+      // Sort newest first (date + time). Do client-side sorting to avoid Firestore index requirements.
+      const toMillis = (dateValue) => {
+        if (!dateValue) return 0;
+        try {
+          // Firestore Timestamp { seconds, nanoseconds }
+          if (dateValue.seconds !== undefined) {
+            return (
+              dateValue.seconds * 1000 +
+              (dateValue.nanoseconds || 0) / 1000000
+            );
+          }
+          // Firestore Timestamp with toDate()
+          if (typeof dateValue.toDate === "function") {
+            return dateValue.toDate().getTime();
+          }
+          // JS Date
+          if (dateValue instanceof Date) {
+            return dateValue.getTime();
+          }
+          // string
+          if (typeof dateValue === "string") {
+            const t = new Date(dateValue).getTime();
+            return Number.isFinite(t) ? t : 0;
+          }
+          // fallback
+          const t = new Date(dateValue).getTime();
+          return Number.isFinite(t) ? t : 0;
+        } catch {
+          return 0;
+        }
+      };
+
+      temp.sort((a, b) => toMillis(b.date) - toMillis(a.date));
       setAllExpenses(temp);
       // calculateTotal will be called automatically via useEffect when allExpenses updates
     } catch (error) {
@@ -176,10 +209,17 @@ const GroupDetails = ({ route }) => {
   const expenseDeletor = async (item) => {
     setSelection(false);
     try {
-      setSelection(!selection);
+      if (!item?.id) return;
+      setSelectedExpense(null);
+
+      // Optimistic UI update (remove from both lists immediately)
+      setAllExpenses((prev) => prev.filter((e) => e?.id !== item.id));
+      setFilteredExpenses((prev) => prev.filter((e) => e?.id !== item.id));
+
       const expenseRef = doc(db, "expenses", item.id);
       await deleteDoc(expenseRef);
-      setSelection(!selection);
+
+      // Safety refresh (keeps client in sync if something else changed)
       getUserExpenses();
     } catch (error) {
       console.error("Error deleting expense: ", error);
@@ -188,15 +228,17 @@ const GroupDetails = ({ route }) => {
 
   const handleSearch = (text) => {
     setSearchQuery(text);
-    if (!text || text === " ") {
-      setFilteredExpenses(allExpenses);
+    const q = (text || "").trim();
+    if (!q) {
+      setFilteredExpenses([]);
+      return;
     }
     const filteredData = allExpenses.filter(
       (expense) =>
         (expense.description &&
-          expense.description.toLowerCase().includes(text.toLowerCase())) ||
+          expense.description.toLowerCase().includes(q.toLowerCase())) ||
         (expense.amount &&
-          String(expense.amount).toLowerCase().includes(text.toLowerCase()))
+          String(expense.amount).toLowerCase().includes(q.toLowerCase()))
     );
 
     setFilteredExpenses(filteredData);
@@ -357,7 +399,10 @@ const GroupDetails = ({ route }) => {
               {searchQuery && (
                 <TouchableOpacity
                   style={styles.iconContainer}
-                  onPress={() => setSearchQuery("")}
+                  onPress={() => {
+                    setSearchQuery("");
+                    setFilteredExpenses([]);
+                  }}
                 >
                   <MaterialIcons name="cancel" size={25} color={Colors.black} />
                 </TouchableOpacity>
@@ -368,7 +413,7 @@ const GroupDetails = ({ route }) => {
       )}
 
       <FlatList
-        data={filteredExpenses.length > 0 ? filteredExpenses : allExpenses}
+        data={searchQuery.trim().length > 0 ? filteredExpenses : allExpenses}
         keyExtractor={(item, index) => item.id || index.toString()}
         renderItem={({ item }) => (
           <ExpenseItem
