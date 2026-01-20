@@ -1,4 +1,4 @@
-package com.spliton;
+package com.mianaamirshehzad.SplitOn;
 
 import android.app.Application;
 import android.content.res.Configuration;

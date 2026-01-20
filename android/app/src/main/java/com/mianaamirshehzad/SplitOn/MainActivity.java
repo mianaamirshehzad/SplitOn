@@ -1,4 +1,4 @@
-package com.spliton;
+package com.mianaamirshehzad.SplitOn;
 
 import android.os.Build;
 import android.os.Bundle;
